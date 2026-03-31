@@ -133,25 +133,6 @@ body {
   box-shadow: 0 4px 12px var(--primary-glow);
 }
 
-.theme-toggle {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-main);
-  transition: var(--transition);
-}
-
-.theme-toggle:hover {
-  transform: rotate(15deg);
-  background: var(--surface-hover);
-}
-
 .main-container {
   display: flex;
   gap: 2rem;
@@ -160,12 +141,6 @@ body {
   margin: 0 auto;
   width: 100%;
   flex: 1;
-}
-
-@media (max-width: 1024px) {
-  .main-container {
-    flex-direction: column;
-  }
 }
 
 .editor-section {
@@ -188,6 +163,18 @@ body {
   top: 0;
   z-index: 10;
   overflow-x: auto;
+  white-space: nowrap;
+}
+
+.tabs::-webkit-scrollbar {
+  height: 4px;
+}
+.tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+.tabs::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
 }
 
 .tab-btn {
@@ -202,6 +189,7 @@ body {
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
+  min-width: 120px;
 }
 
 .tab-btn:hover {
@@ -245,7 +233,7 @@ body {
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -279,7 +267,7 @@ body {
   border-radius: var(--radius-sm);
   font-family: var(--font-primary);
   font-size: 0.875rem;
-  transition: var(--transition);
+  transition: border-color 0.3s, box-shadow 0.3s;
   width: 100%;
   appearance: none;
 }
@@ -293,6 +281,7 @@ select.input-control {
   cursor: pointer;
 }
 
+/* For Custom Inputs */
 .input-control.custom-input {
   margin-top: 0.25rem;
   font-size: 0.75rem;
@@ -303,12 +292,13 @@ select.input-control {
 .input-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-glow);
+  box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
+/* ONLY highlight border when it has value, KEEP dark background */
 .input-control.has-value {
   border-color: var(--primary);
-  background-color: var(--primary-glow);
+  /* Removed: background-color: var(--primary-glow); */
 }
 
 /* Result Section */
@@ -363,6 +353,7 @@ textarea.prompt-box {
 textarea.prompt-box:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
 .btn {
@@ -409,37 +400,6 @@ textarea.prompt-box:focus {
   gap: 1rem;
 }
 
-.checkbox-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.75rem;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: var(--surface-hover);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: var(--transition);
-    font-size: 0.875rem;
-}
-
-.checkbox-label:hover {
-    border-color: var(--primary);
-    background: var(--primary-glow);
-}
-
-.checkbox-label input[type="checkbox"] {
-    accent-color: var(--primary);
-    width: 1.1rem;
-    height: 1.1rem;
-    cursor: pointer;
-}
-
 /* Toast */
 #toast-container {
     position: fixed;
@@ -471,4 +431,70 @@ textarea.prompt-box:focus {
 
 .toast.show {
     transform: translateX(0);
+}
+
+/* ========================================================= */
+/* Media Queries for Mobile Responsiveness                   */
+/* ========================================================= */
+
+@media (max-width: 1024px) {
+  .main-container {
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+  
+  .result-section {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .header-controls {
+    width: 100%;
+  }
+
+  .mode-switcher {
+    width: 100%;
+    display: flex;
+  }
+
+  .mode-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.6rem 0.2rem;
+    font-size: 0.7rem;
+  }
+
+  .main-container {
+    padding: 1rem;
+  }
+  
+  .tab-content {
+    padding: 1.5rem 1rem;
+  }
+  
+  .grid-container {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 1rem;
+  }
+  
+  .action-buttons {
+    grid-template-columns: 1fr; /* Buttons stack on mobile */
+  }
+  
+  .title-container h1 {
+    font-size: 1.25rem;
+  }
+  
+  .title-container p {
+    font-size: 0.7rem;
+  }
 }
