@@ -1,7 +1,7 @@
 // App State
 const AppState = {
     mode: 'clean',
-    isDark: true
+    isDark: false
 };
 
 const UI = {
@@ -20,10 +20,12 @@ const UI = {
     },
     updateVisuals: () => {
         document.querySelectorAll('select, input[type="text"]').forEach(el => {
-            if(el.value.trim() !== "") {
-                el.classList.add('has-value');
+            if(el.value && el.value.trim() !== "") {
+                el.classList.add('border-primary');
+                el.classList.remove('border-outline-variant');
             } else {
-                el.classList.remove('has-value');
+                el.classList.remove('border-primary');
+                el.classList.add('border-outline-variant');
             }
         });
     }
@@ -31,10 +33,10 @@ const UI = {
 
 const layoutConfig = [
     {
-        id: 'tab-identity', title: '人物設定',
+        id: 'tab-identity', title: 'Character', icon: 'person', 
         sections: [
             {
-                title: '基本資訊', icon: '📝',
+                title: 'Essence', icon: 'face',
                 fields: [
                     { id: 'gender', label: '性別 (Gender)', source: 'gender', placeholder: '-- 選擇 --' },
                     { id: 'race', label: '種族與國籍 (Race)', source: 'race' },
@@ -43,29 +45,29 @@ const layoutConfig = [
                 ]
             },
             {
-                title: '體態與身型', icon: '📏',
+                title: 'Body Shape', icon: 'accessibility_new',
                 fields: [
                     { id: 'body-height', label: '身高 (Height)', source: 'bodyHeight' },
                     { id: 'body-type', label: '體態 (Type)', source: 'bodyType' },
-                    { id: 'body-bust', label: '胸圍 (Bust) - 性感解鎖', source: 'bodyBust', tags: ['sexy', 'nsfw'] },
+                    { id: 'body-bust', label: '胸圍 (Bust)', source: 'bodyBust', tags: ['sexy', 'nsfw'] },
                     { id: 'body-waist', label: '腰圍 (Waist)', source: 'bodyWaist' },
                     { id: 'body-hip', label: '臀圍 (Hip)', source: 'bodyHip' }
                 ]
             },
             {
-                title: '五官與特徵', icon: '✨',
+                title: 'Features', icon: 'auto_awesome',
                 fields: [
                     { id: 'hair-style', label: '髮型 (Hairstyle)', source: 'hairStyle', custom: true },
                     { id: 'hair-color', label: '髮色 (Hair Color)', source: 'hairColor', custom: true },
-                    { id: 'eye-color', label: '眼睛與瞳色 (Eye Color)', source: 'eyeColor', custom: true },
+                    { id: 'eye-color', label: '瞳色 (Eye Color)', source: 'eyeColor', custom: true },
                     { id: 'eye-shape', label: '眼型 (Eye Shape)', source: 'eyeShape' },
                     { id: 'face-shape', label: '臉型 (Face Shape)', source: 'faceShape' },
                     { id: 'skin-type', label: '膚色與膚質 (Skin)', source: 'skinType', custom: true },
-                    { id: 'body-tattoo', label: '紋身與印記 (Tattoo)', source: 'bodyTattoo', custom: true }
+                    { id: 'body-tattoo', label: '紋身 (Tattoo)', source: 'bodyTattoo', custom: true }
                 ]
             },
             {
-                title: '妝容與臉部', icon: '💄',
+                title: 'Makeup', icon: 'brush',
                 fields: [
                     { id: 'makeup-base', label: '底妝 (Base)', source: 'makeupBase' },
                     { id: 'makeup-eyebrow', label: '眉毛 (Eyebrows)', source: 'makeupEyebrow' },
@@ -75,17 +77,17 @@ const layoutConfig = [
         ]
     },
     {
-        id: 'tab-outfit', title: '服裝穿搭',
+        id: 'tab-outfit', title: 'Clothing', icon: 'checkroom',
         sections: [
             {
-                title: '套裝與物理效果', icon: '👗',
+                title: 'Flow & Presets', icon: 'layers',
                 fields: [
-                    { id: 'outfit-theme', label: '服裝套裝 (Costume Preset)', source: 'outfitTheme', custom: true },
+                    { id: 'outfit-theme', label: '服裝套裝 (Preset)', source: 'outfitTheme', custom: true },
                     { id: 'outfit-fit-physics', label: '穿著效果 (Physics)', source: 'outfitFitPhysics', custom: true }
                 ]
             },
             {
-                title: '混搭單品', icon: '👕',
+                title: 'Garments', icon: 'styler',
                 fields: [
                     { id: 'outfit-outer', label: '外套 (Outerwear)', source: 'outfitOuter' },
                     { id: 'outfit-top', label: '上衣 (Top)', source: 'outfitTop', custom: true },
@@ -95,7 +97,7 @@ const layoutConfig = [
                 ]
             },
             {
-                title: '飾品配件', icon: '💍',
+                title: 'Jewelry', icon: 'diamond',
                 fields: [
                     { id: 'outfit-head', label: '頭飾與面具 (Headwear)', source: 'outfitHead' },
                     { id: 'outfit-acc', label: '飾品 (Jewelry)', source: 'outfitAcc' },
@@ -106,10 +108,10 @@ const layoutConfig = [
         ]
     },
     {
-        id: 'tab-action', title: '動作與表情',
+        id: 'tab-action', title: 'Action', icon: 'directions_run',
         sections: [
             {
-                title: '基礎動作', icon: '🏃',
+                title: 'Pose & Feeling', icon: 'mood',
                 fields: [
                     { id: 'action-pose', label: '姿勢 (Pose)', source: 'actionPose', custom: true },
                     { id: 'action-activity', label: '互動行為 (Activity)', source: 'actionActivity', custom: true },
@@ -119,10 +121,10 @@ const layoutConfig = [
         ]
     },
     {
-        id: 'tab-scene', title: '場景與特效',
+        id: 'tab-scene', title: 'Scene', icon: 'landscape',
         sections: [
             {
-                title: '環境設定', icon: '🏞️',
+                title: 'Environment', icon: 'forest',
                 fields: [
                     { id: 'scene-loc', label: '場景 (Location)', source: 'sceneLoc', custom: true },
                     { id: 'scene-time', label: '時間 (Time)', source: 'sceneTime' },
@@ -131,7 +133,7 @@ const layoutConfig = [
                 ]
             },
             {
-                title: '物件庫', icon: '🛋️',
+                title: 'Props', icon: 'chair',
                 fields: [
                     { id: 'scene-props', label: '環境裝飾 (Props)', source: 'sceneProps', custom: true },
                     { id: 'scene-props-detail', label: '裝飾細節 (Detail)', source: 'scenePropsDetail' }
@@ -140,10 +142,10 @@ const layoutConfig = [
         ]
     },
     {
-        id: 'tab-camera', title: '鏡頭與風格',
+        id: 'tab-camera', title: 'Camera', icon: 'camera',
         sections: [
             {
-                title: '攝影參數', icon: '📷',
+                title: 'Lens & Angle', icon: 'lens',
                 fields: [
                     { id: 'cam-lens', label: '焦段 (Lens)', source: 'camLens' },
                     { id: 'cam-aperture', label: '光圈 (Aperture)', source: 'camAperture' },
@@ -153,7 +155,7 @@ const layoutConfig = [
                 ]
             },
             {
-                title: '風格疊加', icon: '🎨',
+                title: 'Art Style', icon: 'palette',
                 fields: [
                     { id: 'scene-style-realistic', label: '基礎風格 (Style)', source: 'sceneStyleRealistic', custom: true },
                     { id: 'scene-style-special', label: '特殊藝術濾鏡 (Special)', source: 'sceneStyleSpecial' }
@@ -163,40 +165,67 @@ const layoutConfig = [
     }
 ];
 
-// Initialize UI layout
 function buildLayout() {
-    const tabsContainer = document.getElementById('tabs-container');
+    const desktopTabs = document.getElementById('tabs-container-desktop');
+    const mobileTabs = document.getElementById('tabs-container-mobile');
     const contentContainer = document.getElementById('content-container');
     
     layoutConfig.forEach((tabObj, index) => {
-        // Tab Button
-        const btn = document.createElement('button');
-        btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
-        btn.innerHTML = tabObj.title;
-        btn.onclick = () => switchTab(tabObj.id, btn);
-        tabsContainer.appendChild(btn);
+        const isActive = index === 0;
+
+        // Desktop Nav Items
+        const dBtn = document.createElement('a');
+        dBtn.href = "#";
+        dBtn.dataset.tab = tabObj.id;
+        dBtn.className = `desktop-tab flex items-center gap-3 py-3 font-bold pl-4 transition-colors ${isActive ? 'text-[#334673] dark:text-blue-200 border-l-4 border-[#e07a5f] bg-surface-container-low dark:bg-stone-800' : 'text-[#1b1c17]/70 dark:text-stone-400 hover:bg-[#f5f4ec] border-l-4 border-transparent dark:hover:bg-stone-800'}`;
+        dBtn.innerHTML = `
+            <span class="material-symbols-outlined" data-icon="${tabObj.icon}">${tabObj.icon}</span>
+            <span class="font-sans text-sm font-medium tracking-tight">${tabObj.title}</span>`;
+        dBtn.onclick = (e) => { e.preventDefault(); switchTab(tabObj.id); };
+        desktopTabs.appendChild(dBtn);
+
+        // Mobile Nav Items
+        const mBtn = document.createElement('a');
+        mBtn.href = "#";
+        mBtn.dataset.tab = tabObj.id;
+        mBtn.className = `mobile-tab flex-1 flex flex-col items-center justify-center py-2 min-w-[70px] transition-colors ${isActive ? 'text-[#e07a5f] border-t-2 border-[#e07a5f] bg-[#e07a5f]/10' : 'text-[#1b1c17]/50 dark:text-stone-400 border-t-2 border-transparent hover:text-[#334673]'}`;
+        mBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[20px]" data-icon="${tabObj.icon}">${tabObj.icon}</span>
+            <span class="font-sans text-[10px] uppercase font-bold tracking-tight mt-1 truncate max-w-full">${tabObj.title}</span>`;
+        mBtn.onclick = (e) => { e.preventDefault(); switchTab(tabObj.id); };
+        mobileTabs.appendChild(mBtn);
         
         // Tab Content
         const content = document.createElement('div');
         content.id = tabObj.id;
-        content.className = `tab-content ${index === 0 ? 'active' : ''}`;
+        content.className = `tab-content ${isActive ? 'active' : ''}`;
         
         tabObj.sections.forEach(sec => {
-            const secHtml = document.createElement('div');
-            secHtml.innerHTML = `<h3 class="section-title"><span>${sec.icon}</span> ${sec.title}</h3>`;
+            const secHtml = document.createElement('section');
+            secHtml.className = "bg-surface-container-low dark:bg-stone-900 rounded-xl p-6 md:p-8 border border-outline-variant/10 relative overflow-hidden mb-8 transition-transform group hover:shadow-lg dark:hover:shadow-stone-950/50";
+            
+            // Decorative background drop
+            const deco = document.createElement('div');
+            deco.className = "absolute top-0 right-0 w-32 h-32 opacity-10 bg-tertiary-container dark:bg-stone-700 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110";
+            secHtml.appendChild(deco);
+
+            secHtml.innerHTML += `<h3 class="font-headline text-xl md:text-2xl text-primary dark:text-blue-200 mb-6 flex items-center gap-2">
+                                     <span class="material-symbols-outlined">${sec.icon}</span> ${sec.title}
+                                  </h3>`;
+            
             const grid = document.createElement('div');
-            grid.className = 'grid-container';
+            grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6';
             
             sec.fields.forEach(f => {
                 const group = document.createElement('div');
-                group.className = 'field-group';
+                group.className = 'space-y-2';
                 
-                let selectHtml = `<label class="field-label">${f.label}</label>
-                                  <select id="${f.id}" class="input-control" data-source="${f.source}" data-tags="${(f.tags||[]).join(',')}">
+                let selectHtml = `<label class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-on-surface-variant dark:text-stone-400">${f.label}</label>
+                                  <select id="${f.id}" class="w-full bg-surface dark:bg-stone-950 dark:text-stone-200 border-b border-outline-variant focus:border-secondary transition-colors rounded-t-md px-3 py-2 font-body text-sm input-trigger" data-source="${f.source}" data-tags="${(f.tags||[]).join(',')}">
                                       <option value="">${f.placeholder || '-- 無 --'}</option>
                                   </select>`;
                 if (f.custom) {
-                    selectHtml += `<input type="text" id="${f.id}-custom" class="input-control custom-input" placeholder="自訂...">`;
+                    selectHtml += `<input type="text" id="${f.id}-custom" class="w-full bg-surface-container-highest/20 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-300 border-b border-dashed border-outline-variant focus:border-secondary transition-colors rounded-none px-3 py-1.5 font-body text-xs mt-1 input-trigger" placeholder="自訂...">`;
                 }
                 group.innerHTML = selectHtml;
                 grid.appendChild(group);
@@ -208,35 +237,67 @@ function buildLayout() {
         contentContainer.appendChild(content);
     });
 
-    // Handle initial Data Population
     populateSelects();
     
-    // Bind global change events
-    document.querySelector('.editor-section').addEventListener('change', () => {
+    document.getElementById('content-container').addEventListener('change', () => {
         UI.updateVisuals();
         PromptEngine.build();
     });
-    document.querySelector('.editor-section').addEventListener('keyup', (e) => {
-        if(e.target.tagName === 'INPUT') {
+    document.getElementById('content-container').addEventListener('keyup', (e) => {
+        if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             UI.updateVisuals();
             PromptEngine.build();
         }
     });
 }
 
-function switchTab(tabId, btnElement) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+function switchTab(tabId) {
+    // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btnElement.classList.add('active');
     document.getElementById(tabId).classList.add('active');
+
+    // Update Desktop navs
+    document.querySelectorAll('.desktop-tab').forEach(btn => {
+        if(btn.dataset.tab === tabId) {
+            btn.className = `desktop-tab flex items-center gap-3 py-3 font-bold pl-4 transition-colors text-[#334673] dark:text-blue-200 border-l-4 border-[#e07a5f] bg-surface-container-low dark:bg-stone-800`;
+        } else {
+            btn.className = `desktop-tab flex items-center gap-3 py-3 font-bold pl-4 transition-colors text-[#1b1c17]/70 dark:text-stone-400 hover:bg-[#f5f4ec] border-l-4 border-transparent dark:hover:bg-stone-800`;
+        }
+    });
+
+    // Update Mobile navs
+    document.querySelectorAll('.mobile-tab').forEach(btn => {
+         if(btn.dataset.tab === tabId) {
+             btn.className = `mobile-tab flex-1 flex flex-col items-center justify-center py-2 min-w-[70px] transition-colors text-[#e07a5f] border-t-2 border-[#e07a5f] bg-[#e07a5f]/10`;
+         } else {
+             btn.className = `mobile-tab flex-1 flex flex-col items-center justify-center py-2 min-w-[70px] transition-colors text-[#1b1c17]/50 dark:text-stone-400 border-t-2 border-transparent hover:text-[#334673]`;
+         }
+    });
+    
+    // scroll back up
+    document.getElementById('main-scroll').scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function toggleDark() {
+    AppState.isDark = !AppState.isDark;
+    if (AppState.isDark) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+    } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+    }
 }
 
 function setMode(mode) {
     AppState.mode = mode;
-    document.body.className = `dark-theme mode-${mode}`;
     
     document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mode === mode);
+        if(btn.dataset.mode === mode) {
+            btn.className = "mode-btn px-3 py-1.5 text-xs font-bold rounded bg-primary text-white shadow-sm";
+        } else {
+            btn.className = "mode-btn px-3 py-1.5 text-xs font-bold rounded text-on-surface-variant hover:text-primary dark:text-stone-400";
+        }
     });
     
     populateSelects();
@@ -249,16 +310,12 @@ function isAllowed(itemTags) {
 }
 
 function populateSelects() {
-    if (!window.dbData) {
-        console.error("No dbData found.");
-        return;
-    }
+    if (!window.dbData) return;
     
-    document.querySelectorAll('select.input-control').forEach(select => {
+    document.querySelectorAll('select.input-trigger').forEach(select => {
         const sourceKey = select.getAttribute('data-source');
         const fieldTagsAttr = select.getAttribute('data-tags');
         
-        // Ensure field itself is allowed in current mode
         if (fieldTagsAttr) {
             const fieldTags = fieldTagsAttr.split(',').filter(Boolean);
             if (fieldTags.length > 0 && !fieldTags.includes(AppState.mode)) {
@@ -266,13 +323,13 @@ function populateSelects() {
                 select.value = "";
                 return;
             } else {
-                select.parentElement.style.display = 'flex';
+                select.parentElement.style.display = 'block';
             }
         }
 
         const data = dbData[sourceKey] || [];
         const currentVal = select.value;
-        const defaultText = select.options[0].text;
+        const defaultText = select.options.length > 0 ? select.options[0].text : '-- 無 --';
         
         select.innerHTML = `<option value="">${defaultText}</option>`;
         
@@ -280,6 +337,7 @@ function populateSelects() {
             if (item.group) {
                 const group = document.createElement('optgroup');
                 group.label = item.group;
+                group.className = "dark:bg-stone-800 dark:text-stone-200";
                 item.options.forEach(subItem => {
                     if (isAllowed(subItem.tags)) {
                         const opt = document.createElement('option');
@@ -299,7 +357,6 @@ function populateSelects() {
             }
         });
         
-        // Restore value if available
         let exists = Array.from(select.options).some(o => o.value === currentVal);
         if (exists) select.value = currentVal;
     });
@@ -315,10 +372,7 @@ const PromptEngine = {
         return "";
     },
     build: () => {
-        // Build English
         let enParts = [];
-        
-        // Core Identity
         let gender = PromptEngine.v('gender') || 'female';
         let dna = `Analog photograph`;
         let traits = [PromptEngine.v('char-age'), PromptEngine.v('race'), gender].filter(Boolean).join(" ");
@@ -328,7 +382,6 @@ const PromptEngine = {
         if(prof) dna += `, ${prof}`;
         enParts.push(dna);
         
-        // Features
         let features = [
             [PromptEngine.v('hair-color'), PromptEngine.v('hair-style')].filter(Boolean).join(" ") + (PromptEngine.v('hair-color') && !PromptEngine.v('hair-style') ? " hair" : ""),
             [PromptEngine.v('eye-color'), PromptEngine.v('eye-shape')].filter(Boolean).join(", "),
@@ -343,33 +396,21 @@ const PromptEngine = {
         
         if (features.length) enParts.push(features.join(", "));
         
-        // Makeup
         let makeup = [PromptEngine.v('makeup-base'), PromptEngine.v('makeup-eyebrow'), PromptEngine.v('makeup-detail-1')].filter(Boolean);
         if(makeup.length) enParts.push(makeup.join(", "));
         
-        // Outfits
         let outfits = [
-            PromptEngine.v('outfit-theme'),
-            PromptEngine.v('outfit-outer'),
-            PromptEngine.v('outfit-top'),
-            PromptEngine.v('outfit-bottom'),
-            PromptEngine.v('outfit-sock'),
-            PromptEngine.v('outfit-shoe'),
-            PromptEngine.v('outfit-head'),
-            PromptEngine.v('outfit-acc'),
-            PromptEngine.v('outfit-bag')
+            PromptEngine.v('outfit-theme'), PromptEngine.v('outfit-outer'), PromptEngine.v('outfit-top'),
+            PromptEngine.v('outfit-bottom'), PromptEngine.v('outfit-sock'), PromptEngine.v('outfit-shoe'),
+            PromptEngine.v('outfit-head'), PromptEngine.v('outfit-acc'), PromptEngine.v('outfit-bag')
         ].filter(Boolean);
         
-        if(outfits.length) {
-            enParts.push("wearing " + outfits.join(", "));
-        }
+        if(outfits.length) enParts.push("wearing " + outfits.join(", "));
         
-        // Action
         let action = [PromptEngine.v('action-pose'), PromptEngine.v('action-activity')].filter(Boolean).join(" while ");
         if (action) enParts.push(`She is ${action}`);
         if (PromptEngine.v('action-expression')) enParts.push(PromptEngine.v('action-expression'));
         
-        // Scene & Enviroment
         let env = [
             PromptEngine.v('scene-time'), PromptEngine.v('scene-weather'),
             PromptEngine.v('scene-loc'), PromptEngine.v('scene-lighting'),
@@ -377,7 +418,6 @@ const PromptEngine = {
         ].filter(Boolean);
         if (env.length) enParts.push(env.join(", "));
         
-        // Camera & Style
         let cam = [
             PromptEngine.v('cam-lens'), PromptEngine.v('cam-aperture'), PromptEngine.v('cam-shot'), 
             PromptEngine.v('cam-angle'), PromptEngine.v('scene-composition'),
@@ -385,13 +425,9 @@ const PromptEngine = {
         ].filter(Boolean);
         if(cam.length) enParts.push(cam.join(", "));
         
-        const finalEn = enParts.join(". ");
-        document.getElementById('prompt-en').value = finalEn;
+        document.getElementById('prompt-en').value = enParts.join(". ");
         
-        // == Build Chinese ==
         let zhParts = [];
-        
-        // Identity
         let genderZh = PromptEngine.getText('gender');
         let dnaZh = `人物照片`;
         let traitsZh = [PromptEngine.getText('char-age'), PromptEngine.getText('race'), genderZh].filter(Boolean).join("");
@@ -408,22 +444,17 @@ const PromptEngine = {
         let featuresZh = [
             hairCombZh,
             PromptEngine.getText('eye-color') ? PromptEngine.getText('eye-color') + '的眼睛' : '',
-            PromptEngine.getText('skin-type'),
-            PromptEngine.getText('body-height'),
-            PromptEngine.getText('body-type'),
-            PromptEngine.getText('body-bust'),
-            PromptEngine.getText('body-tattoo')
+            PromptEngine.getText('skin-type'), PromptEngine.getText('body-height'), PromptEngine.getText('body-type'),
+            PromptEngine.getText('body-bust'), PromptEngine.getText('body-tattoo')
         ].filter(s => s && s.trim().length > 0);
         
         if (featuresZh.length) zhParts.push(`外貌特徵：${featuresZh.join("，")}`);
         
         let outfitsZh = [
             [PromptEngine.getText('outfit-theme'), PromptEngine.v('outfit-theme-custom')].filter(Boolean).join(""),
-            PromptEngine.getText('outfit-outer'),
-            [PromptEngine.getText('outfit-top'), PromptEngine.v('outfit-top-custom')].filter(Boolean).join(""),
+            PromptEngine.getText('outfit-outer'), [PromptEngine.getText('outfit-top'), PromptEngine.v('outfit-top-custom')].filter(Boolean).join(""),
             [PromptEngine.getText('outfit-bottom'), PromptEngine.v('outfit-bottom-custom')].filter(Boolean).join(""),
-            PromptEngine.getText('outfit-sock'),
-            PromptEngine.getText('outfit-shoe')
+            PromptEngine.getText('outfit-sock'), PromptEngine.getText('outfit-shoe')
         ].filter(Boolean);
         
         if (outfitsZh.length) zhParts.push(`穿著：${outfitsZh.join("、")}`);
@@ -436,40 +467,34 @@ const PromptEngine = {
         
         let envZh = [
             PromptEngine.getText('scene-loc') ? `在${PromptEngine.getText('scene-loc')}` : '',
-            PromptEngine.getText('scene-time'),
-            PromptEngine.getText('scene-weather'),
-            PromptEngine.getText('scene-lighting'),
-            [PromptEngine.getText('scene-props'), PromptEngine.v('scene-props-custom')].filter(Boolean).join("的")
+            PromptEngine.getText('scene-time'), PromptEngine.getText('scene-weather'),
+            PromptEngine.getText('scene-lighting'), [PromptEngine.getText('scene-props'), PromptEngine.v('scene-props-custom')].filter(Boolean).join("的")
         ].filter(Boolean);
         
         if (envZh.length) zhParts.push(`場景氛圍：${envZh.join("，")}`);
         
         let camZh = [
-            PromptEngine.getText('cam-lens'), PromptEngine.getText('scene-composition'),
-            PromptEngine.getText('scene-style-realistic')
+            PromptEngine.getText('cam-lens'), PromptEngine.getText('scene-composition'), PromptEngine.getText('scene-style-realistic')
         ].filter(Boolean);
         if (camZh.length) zhParts.push(`鏡頭風格：${camZh.join("、")}`);
         
         document.getElementById('prompt-zh').value = zhParts.join("。\n");
     },
     randomize: () => {
-        document.querySelectorAll('select.input-control').forEach(s => {
-            if (s.options.length > 2 && s.parentElement.style.display !== 'none') {
-                // 30% chance to pick something, keep it sparse
-                if (Math.random() > 0.6) {
-                    s.selectedIndex = Math.floor(Math.random() * (s.options.length - 1)) + 1;
-                } else {
-                    s.selectedIndex = 0;
-                }
+        document.querySelectorAll('select.input-trigger').forEach(s => {
+            if (s.options.length > 2 && s.parentElement.style.display !== 'none' && Math.random() > 0.6) {
+                s.selectedIndex = Math.floor(Math.random() * (s.options.length - 1)) + 1;
+            } else {
+                s.selectedIndex = 0;
             }
         });
-        document.getElementById('gender').value = "female"; // base constraint
+        document.getElementById('gender').value = "female";
         PromptEngine.build();
         UI.updateVisuals();
         UI.toast('🪄 已隨機組合參數', '');
     },
     clear: () => {
-        document.querySelectorAll('.input-control').forEach(el => el.value = "");
+        document.querySelectorAll('.input-trigger').forEach(el => el.value = "");
         document.getElementById('gender').value = "female";
         PromptEngine.build();
         UI.updateVisuals();
@@ -487,4 +512,9 @@ const PromptEngine = {
 window.onload = () => {
     buildLayout();
     setMode('clean');
+    
+    // Check system preference dark mode
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        toggleDark();
+    }
 };
