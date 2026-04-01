@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>天菜產生器 - AI Tag Filter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #F5F7FA;
+            --surface: #FFFFFF;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-line: #E2E8F0;
+            --success: #5AC8A5;
+            --error: #F06292;
+            --warning: #FFB74D;
+            --theme-color: #3b82f6; 
+            --theme-glow: rgba(59, 130, 246, 0.3);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+        }
+
+        body.dark-mode {
+            --bg-color: #0F172A;
+            --surface: #1E293B;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border-line: #334155;
+        }
+
+        body.mode-clean { --theme-color: #3b82f6; --theme-glow: rgba(59, 130, 246, 0.3); }
+        body.mode-sexy { --theme-color: #ec4899; --theme-glow: rgba(236, 72, 153, 0.3); }
+        body.mode-nsfw { --theme-color: #ea580c; --theme-glow: rgba(234, 88, 12, 0.3); }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overscroll-behavior-y: none; 
+        }
+
+        .text-theme { color: var(--theme-color); transition: color 0.3s ease; }
+        .bg-theme { background-color: var(--theme-color); transition: background-color 0.3s ease; }
+        .border-theme { border-color: var(--theme-color); transition: border-color 0.3s ease; }
+        .bg-surface { background-color: var(--surface); transition: background-color 0.3s; }
+        .text-main { color: var(--text-main); transition: color 0.3s; }
+        .text-muted { color: var(--text-muted); transition: color 0.3s; }
+        .border-line { border-color: var(--border-line); transition: border-color 0.3s; }
+        
+        .panel {
+            background-color: var(--surface);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
+        .input-field {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-line);
+            color: var(--text-main);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            min-width: 0; 
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--theme-color);
+            box-shadow: 0 0 0 2px var(--theme-glow);
+        }
+
+        select.input-field {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1em;
+            padding-right: 1.8rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        select.has-value {
+            border-color: var(--theme-color) !important;
+            box-shadow: 0 0 0 1px var(--theme-glow);
+        }
+
+        .field-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.375rem;
+            display: flex;
+            align-items: flex-start;
+            letter-spacing: 0.05em;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .field-label i { width: 18px; flex-shrink: 0; text-align: center; margin-right: 4px; margin-top: 1px; color: var(--theme-color); transition: color 0.3s ease;}
+        
+        .tab-btn { transition: all 0.2s ease; border-bottom: 2px solid transparent; }
+        .tab-active { border-bottom-color: var(--theme-color); color: var(--theme-color); background: rgba(128, 128, 128, 0.05); }
+        .tab-inactive { color: var(--text-muted); }
+        .tab-inactive:hover { color: var(--text-main); background: rgba(128, 128, 128, 0.02); }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-line); border-radius: 4px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: var(--theme-color); }
+
+        #toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+        .toast { background-color: var(--surface); color: var(--text-main); padding: 1rem 1.5rem; border-radius: var(--radius-sm); border-left: 4px solid var(--theme-color); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 0.75rem; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); font-size: 0.875rem; font-weight: 500; border: 1px solid var(--border-line); pointer-events: auto; }
+        .toast.show { transform: translateX(0); }
+
+        #custom-dialog { backdrop-filter: blur(4px); transition: opacity 0.2s ease; }
+        #custom-dialog.hidden { opacity: 0; pointer-events: none; }
+        #custom-dialog:not(.hidden) { opacity: 1; pointer-events: auto; }
+        
+        .mode-btn { transition: all 0.3s ease; border: 1px solid var(--border-line); opacity: 0.5; filter: grayscale(80%); }
+        .mode-btn:hover { opacity: 0.9; filter: grayscale(0%); }
+        .mode-active { opacity: 1 !important; filter: grayscale(0%); border-color: var(--theme-color) !important; box-shadow: 0 4px 15px var(--theme-glow); transform: translateY(-2px); z-index: 10; }
+
+        /* Offset for smooth scrolling, optimized for Desktop/Mobile */
+        section { scroll-margin-top: 60px; }
+        @media (min-width: 1024px) {
+            section { scroll-margin-top: 140px; }
+        }
+    </style>
+</head>
+<body class="mode-clean dark-mode flex flex-col min-h-screen">
+
+    <div id="toast-container"></div>
+
+    <div id="custom-dialog" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 p-4">
+        <div class="bg-surface border-line border rounded-[12px] shadow-2xl w-full max-w-2xl p-6 transform scale-95 transition-transform duration-200 flex flex-col max-h-[90vh]" id="dialog-box">
+            <h3 id="dialog-title" class="text-xl font-bold text-main mb-3 flex-none">Title</h3>
+            <div id="dialog-content" class="text-muted text-sm md:text-base mb-2 overflow-y-auto custom-scrollbar pr-2 flex-1">Message</div>
+            <div class="flex justify-end gap-3 mt-4 flex-none pt-3 border-t border-line">
+                <button id="dialog-cancel" class="px-4 py-2 rounded-[8px] text-sm font-medium text-muted hover:text-main hover:bg-gray-500/10 transition border border-transparent">關閉視窗</button>
+                <button id="dialog-confirm" class="px-4 py-2 rounded-[8px] text-sm font-medium bg-[var(--theme-color)] text-white hover:opacity-90 transition shadow-lg hidden">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頂部固定 Header -->
+    <header class="flex-none border-b border-line bg-surface z-50 shadow-sm w-full lg:sticky lg:top-0 lg:h-[80px] flex flex-col justify-center">
+        <div class="w-full max-w-[1500px] mx-auto px-3 sm:px-4 md:px-6 py-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex flex-col min-w-0">
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight truncate">
+                    <span class="text-theme">天菜</span><span class="text-main">產生器</span>
+                </h1>
+                <p class="text-muted text-[10px] md:text-xs tracking-widest mt-1 font-medium truncate">
+                    <i class="fas fa-wand-magic-sparkles mr-1 text-theme"></i>輕鬆創造屬於你的男/女主角
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full lg:w-auto">
+                <div class="flex gap-2">
+                    <button onclick="App.showHelp()" class="panel px-3 py-1.5 text-xs text-main hover:text-theme transition flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fas fa-book-open text-theme"></i> 說明
+                    </button>
+                    <button onclick="App.toggleTheme()" class="panel px-3 py-1.5 text-xs text-main transition flex items-center gap-1.5 whitespace-nowrap" id="btn-theme-toggle">
+                        <i class="fas fa-sun text-yellow-400"></i> 亮色
+                    </button>
+                </div>
+
+                <div class="flex bg-bg-color p-1 rounded-[10px] border border-line shadow-inner w-full sm:w-auto">
+                    <button onclick="App.setMode('clean')" id="btn-clean" class="mode-btn flex-1 sm:flex-none bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] px-3 sm:px-4 py-1.5 rounded-l-[6px] flex flex-col items-center justify-center gap-0.5">
+                        <i class="fas fa-leaf mb-0.5"></i><span class="font-bold whitespace-nowrap">清純版</span><span class="text-[8px] opacity-70">Safe</span>
+                    </button>
+                    <button onclick="App.setMode('sexy')" id="btn-sexy" class="mode-btn flex-1 sm:flex-none bg-pink-500/10 text-pink-600 dark:text-pink-400 text-[11px] px-3 sm:px-4 py-1.5 border-l border-r border-line flex flex-col items-center justify-center gap-0.5">
+                        <i class="fas fa-heart mb-0.5"></i><span class="font-bold whitespace-nowrap">性感版</span><span class="text-[8px] opacity-70">Standard</span>
+                    </button>
+                    <button onclick="App.setMode('nsfw')" id="btn-nsfw" class="mode-btn flex-1 sm:flex-none bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[11px] px-3 sm:px-4 py-1.5 rounded-r-[6px] flex flex-col items-center justify-center gap-0.5">
+                        <i class="fas fa-fire mb-0.5"></i><span class="font-bold whitespace-nowrap">NSFW版</span><span class="text-[8px] opacity-70">Uncensored</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 中間核心排版 -->
+    <div class="flex-1 w-full max-w-[1500px] mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 flex flex-col-reverse lg:flex-row gap-4 md:gap-6 items-start relative">
+        
+        <!-- 左側主控制區 -->
+        <main class="w-full lg:w-[65%] xl:w-[70%] panel flex flex-col bg-surface z-10 relative">
+            
+            <!-- 完美的 Sticky 頁籤 -->
+            <nav class="flex-none flex overflow-x-auto custom-scrollbar border-b border-line bg-surface/95 backdrop-blur z-40 sticky top-0 lg:top-[80px] rounded-t-[12px]">
+                <button onclick="UI.scrollToSection('tab-identity')" id="btn-tab-identity" class="tab-btn flex-1 min-w-[70px] py-3 md:py-4 text-xs md:text-sm font-bold tab-active">
+                    <i class="fas fa-user-circle mr-1 text-theme transition-colors"></i>人物
+                </button>
+                <button onclick="UI.scrollToSection('tab-outfit')" id="btn-tab-outfit" class="tab-btn flex-1 min-w-[70px] py-3 md:py-4 text-xs md:text-sm font-bold tab-inactive">
+                    <i class="fas fa-tshirt mr-1 text-theme transition-colors"></i>穿搭
+                </button>
+                <button onclick="UI.scrollToSection('tab-action')" id="btn-tab-action" class="tab-btn flex-1 min-w-[70px] py-3 md:py-4 text-xs md:text-sm font-bold tab-inactive">
+                    <i class="fas fa-running mr-1 text-theme transition-colors"></i>動作
+                </button>
+                <button onclick="UI.scrollToSection('tab-scene')" id="btn-tab-scene" class="tab-btn flex-1 min-w-[70px] py-3 md:py-4 text-xs md:text-sm font-bold tab-inactive">
+                    <i class="fas fa-map-marked-alt mr-1 text-theme transition-colors"></i>場景
+                </button>
+                <button onclick="UI.scrollToSection('tab-camera')" id="btn-tab-camera" class="tab-btn flex-1 min-w-[70px] py-3 md:py-4 text-xs md:text-sm font-bold tab-inactive">
+                    <i class="fas fa-camera mr-1 text-theme transition-colors"></i>鏡頭
+                </button>
+            </nav>
+
+            <div class="p-4 md:p-6 lg:p-8 space-y-10 pb-20" id="scroll-content">
+                
+                <!-- Section 1: 人物 -->
+                <section id="tab-identity" class="space-y-4 md:space-y-5">
+                    <div class="flex justify-between items-center pb-2 border-b border-line">
+                        <h2 class="text-lg md:text-xl font-bold text-main flex items-center"><i class="fas fa-user-circle mr-3 text-theme"></i>人物設定</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                        <div class="sm:col-span-2 lg:col-span-1">
+                            <label class="field-label"><i class="fas fa-signature"></i> 人物名稱 (Name)</label>
+                            <input type="text" id="char-name" value="Protagonist" class="input-field w-full px-3 py-2 text-theme font-mono text-sm">
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-venus-mars"></i> 性別 (Gender)</label>
+                            <select id="gender" class="input-field w-full px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-globe-asia"></i> 種族/國籍 (Race)</label>
+                            <select id="race" class="input-field w-full px-3 py-2 text-sm"></select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                        <div>
+                            <label class="field-label"><i class="fas fa-birthday-cake"></i> 年齡 (Age)</label>
+                            <select id="char-age" class="input-field w-full px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-ruler-vertical"></i> 身高 (Height)</label>
+                            <select id="body-height" class="input-field w-full px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="field-label text-theme"><i class="fas fa-shapes"></i> 體態 (Type)</label>
+                            <select id="body-type" class="input-field w-full px-3 py-2 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="field-label text-theme"><i class="fas fa-briefcase"></i> 職業 (Profession)</label>
+                            <select id="char-profession" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                            <input type="text" id="char-profession-custom" placeholder="自訂職業..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                        </div>
+                    </div>
+
+                    <div id="bust-container" class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="field-label text-theme !mb-0"><i class="fas fa-ruler-combined"></i> 三圍數據 (Measurements)</label>
+                            <span id="bust-warn" class="text-[10px] text-[var(--success)] font-bold hidden flex items-center bg-[var(--success)]/10 px-2 py-1 rounded-full"><i class="fas fa-shield-alt mr-1"></i> 安全模式隱藏</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-[10px] text-muted block mb-1">胸圍 (Bust)</label>
+                                <select id="body-bust" class="input-field w-full px-2 py-1.5 text-xs mb-1"></select>
+                                <input type="text" id="body-bust-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted mt-1">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-muted block mb-1">腰圍 (Waist)</label>
+                                <select id="body-waist" class="input-field w-full px-2 py-1.5 text-xs mb-1"></select>
+                                <input type="text" id="body-waist-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted mt-1">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-muted block mb-1">臀圍 (Hip)</label>
+                                <select id="body-hip" class="input-field w-full px-2 py-1.5 text-xs mb-1"></select>
+                                <input type="text" id="body-hip-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted mt-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 擴充五官與毛髮區塊 -->
+                    <div class="grid grid-cols-1 gap-3 md:gap-4">
+                        <!-- 頭髮合併區塊 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="field-label"><i class="fas fa-cut"></i> 髮型 (Style)</label>
+                                <select id="hair-style" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="hair-style-custom" placeholder="自訂髮型..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label"><i class="fas fa-palette"></i> 髮色與挑染 (Color & Dye)</label>
+                                <select id="hair-color" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="hair-color-custom" placeholder="自訂髮色/挑染..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                        </div>
+
+                        <!-- 身體特徵區塊 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="field-label"><i class="fas fa-hand-sparkles"></i> 膚質 (Skin)</label>
+                                <select id="skin-type" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="skin-type-custom" placeholder="自訂膚質..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label text-theme"><i class="fas fa-magic"></i> 紋身 (Tattoo)</label>
+                                <select id="body-tattoo" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="body-tattoo-custom" placeholder="自訂紋身..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label text-theme"><i class="fas fa-laugh"></i> 臉部表情 (Expression)</label>
+                                <select id="action-expression" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="action-expression-custom" placeholder="自訂表情..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                        </div>
+
+                        <!-- 妝容區塊 -->
+                        <div class="bg-gray-500/5 p-3 rounded-[8px] border border-line grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="field-label text-theme"><i class="fas fa-paint-brush"></i> 底妝 (Base)</label>
+                                <select id="makeup-base" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="makeup-base-custom" placeholder="自訂底妝..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label text-theme"><i class="fas fa-ruler-horizontal"></i> 眉毛 (Eyebrows)</label>
+                                <select id="makeup-eyebrow" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="makeup-eyebrow-custom" placeholder="自訂眉毛..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label text-theme"><i class="fas fa-star"></i> 唇妝與眼妝</label>
+                                <select id="makeup-detail-1" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="makeup-detail-1-custom" placeholder="自訂細節..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                        </div>
+                        
+                        <!-- 全新五官細節區塊 (放置於最底) -->
+                        <div class="bg-gray-500/5 p-3 rounded-[8px] border border-line mt-2">
+                            <p class="text-xs text-theme font-bold uppercase mb-3 flex items-center"><i class="fas fa-smile-beam mr-2"></i> 五官輪廓細節</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div>
+                                    <label class="field-label"><i class="fas fa-smile"></i> 臉型 (Face)</label>
+                                    <select id="face-shape" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-shape-custom" placeholder="自訂臉型..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label"><i class="fas fa-eye"></i> 眼型 (Eye Shape)</label>
+                                    <select id="eye-shape" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="eye-shape-custom" placeholder="自訂眼型..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="field-label"><i class="fas fa-eye"></i> 瞳色與形狀 (Color & Pupil)</label>
+                                    <select id="eye-color" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="eye-color-custom" placeholder="自訂瞳色/形狀..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">額頭 (Forehead)</label>
+                                    <select id="face-forehead" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-forehead-custom" placeholder="自訂額頭..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">臉頰 (Cheeks)</label>
+                                    <select id="face-cheek" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-cheek-custom" placeholder="自訂臉頰..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">下巴 (Chin)</label>
+                                    <select id="face-chin" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-chin-custom" placeholder="自訂下巴..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">耳朵 (Ears)</label>
+                                    <select id="face-ear" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-ear-custom" placeholder="自訂耳朵..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">鼻型 (Nose Shape)</label>
+                                    <select id="face-nose-shape" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-nose-shape-custom" placeholder="自訂鼻型..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">鼻翼 (Nose Wing)</label>
+                                    <select id="face-nose-wing" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-nose-wing-custom" placeholder="自訂鼻翼..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">鼻頭 (Nose Tip)</label>
+                                    <select id="face-nose-tip" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-nose-tip-custom" placeholder="自訂鼻頭..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div>
+                                    <label class="field-label">嘴巴 (Mouth)</label>
+                                    <select id="face-mouth" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="face-mouth-custom" placeholder="自訂嘴巴..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: 穿搭 (Outfit) -->
+                <section id="tab-outfit" class="space-y-4 md:space-y-5">
+                    <div class="flex justify-between items-center pb-2 border-b border-line">
+                        <h2 class="text-lg md:text-xl font-bold text-main flex items-center"><i class="fas fa-tshirt mr-3 text-theme"></i>服裝穿搭</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                            <label class="field-label text-theme"><i class="fas fa-layer-group"></i> 服裝套裝 (Costume Preset)</label>
+                            <select id="outfit-theme" class="input-field w-full px-3 py-2 text-sm font-medium mb-1"></select>
+                            <input type="text" id="outfit-theme-custom" placeholder="自訂風格 (e.g. wearing a kimono)..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                        </div>
+
+                        <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                            <label class="field-label text-theme"><i class="fas fa-compress-arrows-alt"></i> 穿著效果 (Fit & Physics)</label>
+                            <select id="outfit-fit-physics" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                            <input type="text" id="outfit-fit-physics-custom" placeholder="自訂穿著效果..." class="input-field w-full px-3 py-1.5 text-xs text-muted mt-1">
+                        </div>
+
+                        <!-- 飾品配件區塊 -->
+                        <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                            <p class="text-xs text-theme font-bold uppercase mb-3 flex items-center"><i class="fas fa-gem mr-2"></i> 飾品與配件</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="min-w-0">
+                                    <label class="field-label"><i class="fas fa-hat-cowboy"></i> 頭飾與面具 (Headwear/Mask)</label>
+                                    <select id="outfit-head" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="outfit-head-custom" placeholder="自訂頭飾/面具..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div class="min-w-0">
+                                    <label class="field-label"><i class="fas fa-gem"></i> 飾品 (Jewelry)</label>
+                                    <select id="outfit-acc" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="outfit-acc-custom" placeholder="自訂飾品..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div class="min-w-0">
+                                    <label class="field-label"><i class="fas fa-hand-paper"></i> 手部 (Hands)</label>
+                                    <select id="outfit-hands" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="outfit-hands-custom" placeholder="自訂手部..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div class="min-w-0">
+                                    <label class="field-label"><i class="fas fa-shopping-bag"></i> 包包與配件 (Acc)</label>
+                                    <select id="outfit-bag" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="outfit-bag-custom" placeholder="自訂配件..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                            <label class="field-label"><i class="fas fa-vest"></i> 外套 / 罩衫 (Outerwear)</label>
+                            <div class="flex flex-col gap-1">
+                                <select id="outfit-outer" class="input-field w-full px-3 py-2 text-sm"></select>
+                                <input type="text" id="outfit-outer-custom" placeholder="自訂外套..." class="input-field w-full px-3 py-1.5 text-xs text-muted">
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                            <label class="field-label"><i class="fas fa-shirt"></i> 上衣 (Top)</label>
+                            <div class="space-y-2">
+                                <select id="outfit-top" class="input-field w-full px-3 py-2 text-sm"></select>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <div class="min-w-0">
+                                        <label class="text-[10px] text-muted block mb-1 font-bold truncate">顏色 (Color)</label>
+                                        <select id="top-color" data-placeholder="-- 無 --" class="input-field w-full px-2 py-1.5 text-xs"></select>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <label class="text-[10px] text-muted block mb-1 font-bold truncate">材質 (Material)</label>
+                                        <select id="top-mat" data-placeholder="-- 無 --" class="input-field w-full px-2 py-1.5 text-xs"></select>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <label class="text-[10px] text-muted block mb-1 font-bold truncate">花紋 (Pattern)</label>
+                                        <select id="top-pat" data-placeholder="-- 無 --" class="input-field w-full px-2 py-1.5 text-xs"></select>
+                                    </div>
+                                </div>
+                                <input type="text" id="outfit-top-custom" placeholder="上衣自訂補充..." class="input-field w-full px-3 py-1.5 text-xs text-muted">
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                            <label class="field-label"><i class="fas fa-user-tag"></i> 下著 (Bottom)</label>
+                            <div class="space-y-2">
+                                <select id="outfit-bottom" class="input-field w-full px-3 py-2 text-sm"></select>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <div class="min-w-0">
+                                        <label class="text-[10px] text-muted block mb-1 font-bold truncate">顏色 (Color)</label>
+                                        <select id="bottom-color" data-placeholder="-- 無 --" class="input-field w-full px-2 py-1.5 text-xs"></select>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <label class="text-[10px] text-muted block mb-1 font-bold truncate">材質 (Material)</label>
+                                        <select id="bottom-mat" data-placeholder="-- 無 --" class="input-field w-full px-2 py-1.5 text-xs"></select>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <label class="text-[10px] text-muted block mb-1 font-bold truncate">花紋 (Pattern)</label>
+                                        <select id="bottom-pat" data-placeholder="-- 無 --" class="input-field w-full px-2 py-1.5 text-xs"></select>
+                                    </div>
+                                </div>
+                                <input type="text" id="outfit-bottom-custom" placeholder="下著自訂補充..." class="input-field w-full px-3 py-1.5 text-xs text-muted">
+                            </div>
+                        </div>
+
+                        <!-- 襪子鞋子區塊 -->
+                        <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                            <p class="text-xs text-theme font-bold uppercase mb-3 flex items-center"><i class="fas fa-shoe-prints mr-2"></i> 腿部與鞋襪</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                                <div class="min-w-0">
+                                    <label class="field-label"><i class="fas fa-socks"></i> 襪子 (Socks)</label>
+                                    <select id="outfit-sock" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="outfit-sock-custom" placeholder="自訂襪子..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                                <div class="min-w-0">
+                                    <label class="field-label"><i class="fas fa-shoe-prints"></i> 鞋子 (Shoes)</label>
+                                    <select id="outfit-shoe" class="input-field w-full px-2 py-1.5 text-sm mb-1"></select>
+                                    <input type="text" id="outfit-shoe-custom" placeholder="自訂鞋子..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: 動作 (Action) -->
+                <section id="tab-action" class="space-y-4 md:space-y-5">
+                    <div class="flex justify-between items-center pb-2 border-b border-line">
+                        <h2 class="text-lg md:text-xl font-bold text-main flex items-center"><i class="fas fa-running mr-3 text-theme"></i>動作設定</h2>
+                    </div>
+
+                    <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label">基礎姿勢與手勢 (Pose/Gestures)</label>
+                                <select id="action-pose" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="action-pose-custom" placeholder="自訂姿勢..." class="input-field w-full px-2 py-1.5 text-xs text-muted mt-1">
+                            </div>
+                            <div>
+                                <label class="field-label">互動行為 (Activity)</label>
+                                <select id="action-activity" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="action-activity-custom" placeholder="自訂行為..." class="input-field w-full px-2 py-1.5 text-xs text-muted mt-1">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: 場景 (Scene) -->
+                <section id="tab-scene" class="space-y-4 md:space-y-5">
+                    <div class="flex justify-between items-center pb-2 border-b border-line">
+                        <h2 class="text-lg md:text-xl font-bold text-main flex items-center"><i class="fas fa-map-marked-alt mr-3 text-theme"></i>場景與氛圍</h2>
+                    </div>
+
+                    <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label">場景 (Location)</label>
+                                <select id="scene-loc" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-loc-custom" placeholder="自訂場景細節..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">時間 (Time)</label>
+                                <select id="scene-time" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-time-custom" placeholder="自訂時間..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">環境裝飾與物件 (Props)</label>
+                                <select id="scene-props" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-props-custom" placeholder="自訂裝飾..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">裝飾細節 (Detail)</label>
+                                <select id="scene-props-detail" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-props-detail-custom" placeholder="自訂細節..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">天氣 (Weather)</label>
+                                <select id="scene-weather" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-weather-custom" placeholder="自訂天氣..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">光影 (Lighting)</label>
+                                <select id="scene-lighting" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-lighting-custom" placeholder="自訂光影..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                        <label class="field-label text-theme mb-3"><i class="fas fa-layer-group"></i> 質感疊加 (Texture Overlay)</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 texture-container">
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-damp-hair" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="noticeably damp hair, glistening wet hair texture">
+                                <span class="text-sm text-main truncate">💧 頭髮微濕</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-steamy" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="steamy skin, misty condensation, warm glow">
+                                <span class="text-sm text-main truncate">🧖‍♀️ 霧氣蒸騰</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="sexy,nsfw">
+                                <input type="checkbox" id="effect-showered" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="freshly showered, dripping wet, water droplets on skin">
+                                <span class="text-sm text-main truncate">🚿 出浴質感</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="sexy,nsfw">
+                                <input type="checkbox" id="effect-oily" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="oiled skin, shiny skin">
+                                <span class="text-sm text-main truncate">🧴 油光質感</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-rain" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="soaked by rain, drenched clothes, water streaks on face">
+                                <span class="text-sm text-main truncate">🌧️ 雨水滑落</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="sexy,nsfw">
+                                <input type="checkbox" id="effect-sweaty" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="wet skin, sweating, glistening skin">
+                                <span class="text-sm text-main truncate">💦 濕身汗水</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-underwater" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="underwater caustics, shimmering water reflections on skin">
+                                <span class="text-sm text-main truncate">🌊 水波光影折射</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-glitter" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="glittery skin, shimmering particles, sparkling highlights">
+                                <span class="text-sm text-main truncate">💎 閃粉亮片</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-frost" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="frosted eyelashes, snow-dusted hair, icy skin texture">
+                                <span class="text-sm text-main truncate">❄️ 冰霜附著</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="sexy,nsfw">
+                                <input type="checkbox" id="effect-goosebumps" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="visible goosebumps, chilled skin texture, micro-detail pores">
+                                <span class="text-sm text-main truncate">🥶 雞皮疙瘩</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-flush" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="sun-kissed flush, rosy skin undertone, natural redness">
+                                <span class="text-sm text-main truncate">🍷 微醺/曬後泛紅</span>
+                            </label>
+                            <label class="texture-cb flex items-center space-x-2 cursor-pointer bg-surface px-3 py-2 rounded-[6px] hover:bg-gray-500/10 border border-line transition" data-tags="clean,sexy,nsfw">
+                                <input type="checkbox" id="effect-glow" class="texture-input w-4 h-4 flex-none rounded" style="accent-color: var(--theme-color);" value="bioluminescent skin, glowing veins, UV reactive body paint">
+                                <span class="text-sm text-main truncate">🧪 螢光/生物發光</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 5: 鏡頭 (Camera) -->
+                <section id="tab-camera" class="space-y-4 md:space-y-5">
+                    <div class="flex justify-between items-center pb-2 border-b border-line">
+                        <h2 class="text-lg md:text-xl font-bold text-main flex items-center"><i class="fas fa-camera mr-3 text-theme"></i>鏡頭與風格</h2>
+                    </div>
+
+                    <div class="bg-gray-500/5 p-3 md:p-4 rounded-[8px] border border-line">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div>
+                                <label class="field-label">焦段 (Lens)</label>
+                                <select id="cam-lens" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="cam-lens-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">光圈 (Aperture)</label>
+                                <select id="cam-aperture" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="cam-aperture-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">構圖 (Composition)</label>
+                                <select id="scene-composition" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-composition-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">景別 (Shot)</label>
+                                <select id="cam-shot" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="cam-shot-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">風格 (Style)</label>
+                                <select id="scene-style-realistic" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-style-realistic-custom" placeholder="自訂風格..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">特殊效果 (Effects)</label>
+                                <select id="scene-style-special" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="scene-style-special-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label">視角 (Angle)</label>
+                                <select id="cam-angle" class="input-field w-full px-3 py-2 text-sm mb-1"></select>
+                                <input type="text" id="cam-angle-custom" placeholder="自訂..." class="input-field w-full px-2 py-1.5 text-xs text-muted">
+                            </div>
+                            <div>
+                                <label class="field-label text-theme"><i class="fas fa-crop-alt"></i> 圖片尺寸 (Ratio)</label>
+                                <select id="aspect-ratio" class="input-field w-full px-3 py-2 text-sm mb-1">
+                                    <option value="">-- 無 --</option>
+                                    <option value="--ar 9:16">9:16 (直式短影音)</option>
+                                    <option value="--ar 4:5">4:5 (IG 直文)</option>
+                                    <option value="--ar 2:3">2:3 (標準直式)</option>
+                                    <option value="--ar 1:1">1:1 (正方形)</option>
+                                    <option value="--ar 3:2">3:2 (標準橫式)</option>
+                                    <option value="--ar 5:4">5:4 (傳統螢幕)</option>
+                                    <option value="--ar 16:9">16:9 (寬螢幕)</option>
+                                    <option value="--ar 21:9">21:9 (電影寬螢幕)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+
+        <!-- Right Column: Results & Tools -->
+        <aside class="flex-none w-full lg:w-[320px] xl:w-[400px] flex flex-col lg:sticky lg:top-[100px] z-30 gap-4 mb-4 lg:mb-0">
+            
+            <div class="panel p-4 flex flex-col gap-2 flex-none">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-sm font-bold text-theme flex items-center"><i class="fas fa-bookmark mr-2"></i>個人書籤</label>
+                    <div class="flex gap-3 text-xs text-muted">
+                        <button class="hover:text-theme transition" onclick="BookmarkManager.exportJSON()">匯出 JSON</button>
+                        <button class="hover:text-theme transition" onclick="document.getElementById('import-json').click()">匯入</button>
+                        <input type="file" id="import-json" class="hidden" accept=".json" onchange="BookmarkManager.importJSON(event)">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 items-center">
+                    <input type="text" id="bookmark-name" class="input-field px-3 py-2 text-sm flex-1 min-w-0" placeholder="名稱 (預設用人物名)...">
+                    <button onclick="BookmarkManager.save()" class="bg-surface border border-line text-main hover:bg-gray-500/10 px-4 py-2 rounded-[8px] text-sm flex-none flex items-center gap-2 transition shadow-sm">
+                        <i class="fas fa-save text-theme"></i> 儲存
+                    </button>
+                </div>
+
+                <div class="flex gap-2 mt-1">
+                    <select id="bookmark-select" class="input-field px-3 py-2 text-sm flex-1 min-w-0">
+                        <option value="">-- 選擇書籤 --</option>
+                    </select>
+                    <button onclick="BookmarkManager.load()" class="bg-theme text-white px-4 py-2 rounded-[8px] text-sm hover:opacity-90 transition shadow-sm border border-transparent flex-none">
+                        載入
+                    </button>
+                    <button onclick="BookmarkManager.deleteSelected()" class="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-2 rounded-[8px] text-sm hover:bg-red-500/20 transition shadow-sm flex-none" title="刪除選中">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 flex-none">
+                <button onclick="PromptEngine.resetAll()" class="panel border-line hover:border-gray-400 text-main text-sm font-bold py-3 transition shadow-sm flex items-center justify-center gap-2 group">
+                    <i class="fas fa-eraser text-lg group-hover:rotate-12 transition-transform"></i> 清除選擇
+                </button>
+                <button onclick="PromptEngine.randomizeAll()" class="panel border-line hover:border-theme text-main hover:text-theme text-sm font-bold py-3 transition shadow-sm flex items-center justify-center gap-2 group">
+                    <i class="fas fa-dice text-lg group-hover:rotate-12 transition-transform"></i> 隨機選取
+                </button>
+            </div>
+
+            <!-- English Prompt Box -->
+            <div class="panel p-4 flex flex-col flex-none relative bg-gray-500/5">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="text-sm font-bold text-theme tracking-wider flex items-center">
+                        <i class="fas fa-terminal mr-2"></i> 英文提示詞 (PROMPT)
+                    </label>
+                    <span id="mode-status" class="text-[10px] uppercase font-bold px-2 py-1 rounded-[4px] bg-surface border border-line text-muted tracking-wider shadow-sm">Loading...</span>
+                </div>
+                
+                <textarea id="output-text" readonly class="flex-none w-full bg-surface text-main text-sm p-4 rounded-[8px] border border-line font-mono resize-none outline-none leading-relaxed focus:border-theme transition-colors shadow-inner h-[110px]"></textarea>
+                
+                <div class="flex flex-col sm:flex-row gap-2 mt-3 flex-none">
+                    <button onclick="PromptEngine.copyPrompt('en', false)" class="flex-1 bg-theme text-white hover:opacity-90 py-2.5 rounded-[8px] font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-copy"></i> 複製英文
+                    </button>
+                    <button onclick="PromptEngine.copyPrompt('en', true)" class="flex-1 bg-surface border border-line text-main hover:bg-gray-500/10 py-2.5 rounded-[8px] font-bold text-[11px] transition-all shadow-md flex items-center justify-center gap-1.5">
+                        <i class="fas fa-plus-circle text-theme"></i> 含負面詞複製
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chinese Prompt Box -->
+            <div class="panel p-4 flex flex-col flex-none relative bg-gray-500/5">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="text-sm font-bold text-theme tracking-wider flex items-center">
+                        <i class="fas fa-language mr-2"></i> 中文提示詞 (CHINESE)
+                    </label>
+                </div>
+                
+                <textarea id="output-text-zh" readonly class="flex-none w-full bg-surface text-main text-sm p-4 rounded-[8px] border border-line font-sans resize-none outline-none leading-relaxed focus:border-theme transition-colors shadow-inner h-[100px]"></textarea>
+                
+                <div class="flex gap-2 mt-3 flex-none">
+                    <button onclick="PromptEngine.copyPrompt('zh', false)" class="w-full bg-surface border border-theme text-theme hover:bg-theme hover:text-white py-2.5 rounded-[8px] font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-copy"></i> 複製中文版
+                    </button>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="panel p-4 flex flex-col flex-1 min-h-[150px] lg:max-h-[30vh]">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-xs font-bold text-muted uppercase flex items-center"><i class="fas fa-history mr-2 text-theme"></i> 歷史紀錄 (History)</label>
+                    <button onclick="HistoryManager.clear()" class="text-[10px] text-muted hover:text-error transition flex items-center"><i class="fas fa-trash mr-1"></i> 清除</button>
+                </div>
+                <div id="history-list" class="flex-grow overflow-y-auto custom-scrollbar space-y-2 pr-1"></div>
+            </div>
+
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer class="flex-none text-center text-muted text-xs pb-4 pt-2 w-full border-t border-line mt-auto">
+        v1.1.9 | &copy;2026 <a href="https://huobest.com/" target="_blank" class="text-theme hover:opacity-80 transition-colors font-bold">霍家私塾</a>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // 👉 將你剛剛在 GAS 部署後獲得的「網頁應用程式網址」填入下方的雙引號中
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyNyYYjsTfUbdXF7yxGkIWU-fSVIhoFfCJXveEIZqnUXLjPaUNVzu6dxyTKEckBwmYPRA/exec"; 
+
+        const AppState = {
+            mode: 'clean',
+            db: {} // 初始為空，將從 GAS 動態載入
+        };
+
+        const UI = {
+            toast: (message, icon = 'fa-check-circle') => {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<i class="fas ${icon} text-[var(--theme-color)]"></i><span>${message}</span>`;
+                container.appendChild(toast);
+                setTimeout(() => toast.classList.add('show'), 10);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 400);
+                }, 4000); // 延長提示顯示時間
+            },
+            confirm: (titleHTML, contentHTML, onConfirm) => {
+                const dialog = document.getElementById('custom-dialog');
+                document.getElementById('dialog-title').innerHTML = titleHTML;
+                document.getElementById('dialog-content').innerHTML = contentHTML;
+                
+                const btnConfirm = document.getElementById('dialog-confirm');
+                btnConfirm.classList.remove('hidden');
+                
+                const closeDialog = () => {
+                    dialog.classList.add('hidden');
+                    btnConfirm.classList.add('hidden');
+                    btnConfirm.onclick = null;
+                };
+
+                document.getElementById('dialog-cancel').onclick = closeDialog;
+                btnConfirm.onclick = () => {
+                    onConfirm();
+                    closeDialog();
+                };
+                dialog.classList.remove('hidden');
+            },
+            showModal: (titleHTML, contentHTML) => {
+                const dialog = document.getElementById('custom-dialog');
+                document.getElementById('dialog-title').innerHTML = titleHTML;
+                document.getElementById('dialog-content').innerHTML = contentHTML;
+                
+                document.getElementById('dialog-confirm').classList.add('hidden');
+                
+                dialog.classList.remove('hidden');
+                document.getElementById('dialog-cancel').onclick = () => dialog.classList.add('hidden');
+            },
+            scrollToSection: (id) => {
+                const el = document.getElementById(id);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            },
+            updateVisuals: () => {
+                document.querySelectorAll('select, input[type="text"]').forEach(el => {
+                    el.classList.toggle('has-value', el.value.trim() !== "");
+                });
+            }
+        };
+
+        const Database = {
+            init: async () => {
+                try {
+                    UI.toast("連線至線上資料庫中...", "fa-spinner fa-spin");
+                    
+                    // 1. 嘗試讀取本地快取，讓畫面能瞬間渲染不卡頓
+                    const cached = localStorage.getItem('wm_db_cache');
+                    if (cached) {
+                        try {
+                            AppState.db = JSON.parse(cached);
+                            if (Object.keys(AppState.db).length > 0) {
+                                Database.populateAll();
+                            }
+                        } catch (e) {
+                            console.warn("快取解析失敗，將重新獲取", e);
+                        }
+                    }
+
+                    // 2. 向 GAS 獲取最新資料 (背景同步更新)
+                    if (GAS_URL && GAS_URL.startsWith("https://script.google.com")) {
+                        const res = await fetch(GAS_URL);
+                        if (!res.ok) {
+                            throw new Error(`伺服器回應錯誤: ${res.status}`);
+                        }
+                        const text = await res.text(); // 先轉成純文字，以便抓出 Google 登入擋板錯誤
+                        
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch (parseError) {
+                            console.error("解析失敗，伺服器回傳了非 JSON 內容:", text);
+                            throw new Error("部署權限設定錯誤或遭封鎖！請回 GAS 執行 testAuth 解鎖，並確認已設定為「所有人 (Anyone)」");
+                        }
+
+                        // 如果 GAS 腳本內部回報錯誤 (例如找不到 Data 工作表)
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        
+                        // 比對資料，若有更新才重繪畫面
+                        if (JSON.stringify(AppState.db) !== JSON.stringify(data)) {
+                            AppState.db = data;
+                            localStorage.setItem('wm_db_cache', JSON.stringify(data));
+                            Database.populateAll();
+                            
+                            // 更新當前模式，以確保新的選項被正確過濾
+                            if(typeof App !== 'undefined' && App.setMode) {
+                                App.setMode(AppState.mode);
+                            }
+                            UI.toast("✅ 資料庫已同步至最新版！", "fa-check-circle");
+                        } else {
+                            if(!cached) UI.toast("✅ 資料庫載入完成", "fa-check-circle");
+                        }
+                    } else if (!cached) {
+                        UI.toast("⚠️ 請先在程式碼中設定 GAS_URL", "fa-exclamation-triangle");
+                    }
+                } catch (err) {
+                    console.error("DB Fetch Error:", err);
+                    UI.toast(`❌ 連線失敗: 請確認 GAS 網址與權限設定是否正確`, "fa-times-circle");
+                }
+            },
+            isAllowed: (item) => {
+                if (!item.tags) return true;
+                return item.tags.includes(AppState.mode);
+            },
+            populateSelect: (id, dataKey) => {
+                const el = document.getElementById(id);
+                // 防呆：確保 AppState.db 存在且 dataKey 有對應的資料
+                const data = AppState.db && AppState.db[dataKey] ? AppState.db[dataKey] : [];
+                if (!el || data.length === 0) return;
+
+                const currentVal = el.value;
+                const defaultText = el.getAttribute('data-placeholder') || '-- 無 --';
+                el.innerHTML = `<option value="">${defaultText}</option>`;
+                
+                data.forEach(item => {
+                    if (item.group) {
+                        const group = document.createElement('optgroup');
+                        group.label = item.group;
+                        item.options.forEach(subItem => {
+                            if (Database.isAllowed(subItem)) {
+                                const opt = document.createElement('option');
+                                opt.value = subItem.value;
+                                opt.innerText = subItem.label;
+                                group.appendChild(opt);
+                            }
+                        });
+                        if (group.children.length > 0) el.appendChild(group);
+                    } else {
+                        if (Database.isAllowed(item)) {
+                            const opt = document.createElement('option');
+                            opt.value = item.value;
+                            opt.innerText = item.label;
+                            el.appendChild(opt);
+                        }
+                    }
+                });
+                
+                let exists = false;
+                Array.from(el.options).forEach(o => { if(o.value === currentVal) exists = true; });
+                if(exists) el.value = currentVal;
+            },
+            populateAll: () => {
+                // 防呆：確保 AppState.db 已經被載入
+                if (!AppState.db || Object.keys(AppState.db).length === 0) return;
+
+                const mappings = {
+                    'gender': 'gender', 'race': 'race', 'char-age': 'charAge', 'body-height': 'bodyHeight', 'body-type': 'bodyType',
+                    'char-profession': 'charProfession',
+                    'body-bust': 'bodyBust', 'body-waist': 'bodyWaist', 'body-hip': 'bodyHip',
+                    'hair-style': 'hairStyle', 
+                    'hair-color': 'hairColor', 
+                    'eye-color': 'eyeColor',   
+                    'eye-shape': 'eyeShape', 
+                    'face-forehead': 'faceForehead', 'face-cheek': 'faceCheek', 'face-chin': 'faceChin', 'face-ear': 'faceEar',
+                    'face-nose-shape': 'faceNoseShape', 'face-nose-wing': 'faceNoseWing', 'face-nose-tip': 'faceNoseTip', 'face-mouth': 'faceMouth',
+                    'face-shape': 'faceShape', 'skin-type': 'skinType',
+                    'body-tattoo': 'bodyTattoo',
+                    'makeup-base': 'makeupBase', 'makeup-eyebrow': 'makeupEyebrow', 'makeup-detail-1': 'makeupDetail',
+                    'outfit-theme': 'outfitTheme', 'outfit-head': 'outfitHead', 'outfit-acc': 'outfitAcc',
+                    'outfit-hands': 'outfitHands', 'outfit-bag': 'outfitBag', 'outfit-outer': 'outfitOuter',
+                    'outfit-fit-physics': 'outfitFitPhysics',
+                    'outfit-top': 'outfitTop', 'outfit-bottom': 'outfitBottom',
+                    'top-color': 'itemColors', 'top-mat': 'itemMaterials', 'top-pat': 'itemPatterns',
+                    'bottom-color': 'itemColors', 'bottom-mat': 'itemMaterials', 'bottom-pat': 'itemPatterns',
+                    'outfit-sock': 'outfitSock', 'outfit-shoe': 'outfitShoe',
+                    'action-pose': 'actionPose', 'action-activity': 'actionActivity', 'action-expression': 'actionExpression',
+                    'scene-loc': 'sceneLoc', 'scene-time': 'sceneTime', 'scene-props': 'sceneProps',
+                    'scene-props-detail': 'scenePropsDetail', 'scene-weather': 'sceneWeather', 'scene-lighting': 'sceneLighting',
+                    'cam-lens': 'camLens', 'cam-aperture': 'camAperture', 'scene-composition': 'sceneComposition',
+                    'cam-shot': 'camShot', 'scene-style-realistic': 'sceneStyleRealistic', 
+                    'scene-style-special': 'sceneStyleSpecial', 'cam-angle': 'camAngle'
+                };
+                for (const [id, key] of Object.entries(mappings)) {
+                    Database.populateSelect(id, key);
+                }
+                
+                const genderEl = document.getElementById('gender');
+                if(!genderEl.value) genderEl.value = 'female';
+                
+                UI.updateVisuals();
+            }
+        };
+
+        const PromptEngine = {
+            v: (id) => document.getElementById(id)?.value || "",
+            c: (id) => document.getElementById(id)?.checked || false,
+            
+            build: () => {
+                const p = PromptEngine;
+                
+                // 取得英文 prompt (包含自訂輸入)
+                const getF = (id) => {
+                    const customId = `${id}-custom`;
+                    const customEl = document.getElementById(customId);
+                    if (customEl) {
+                        return [p.v(id), p.v(customId)].filter(s => s && s.trim() !== '').join(", ");
+                    }
+                    return p.v(id);
+                };
+
+                // 取得中文 prompt (自動提取選項中的中文，並加上自訂輸入)
+                const getZhF = (id) => {
+                    const customId = `${id}-custom`;
+                    const customEl = document.getElementById(customId);
+                    const selectEl = document.getElementById(id);
+                    let zhText = "";
+                    
+                    if (selectEl && selectEl.options && selectEl.selectedIndex > 0) {
+                        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+                        if (selectedOpt) {
+                            const fullText = selectedOpt.text;
+                            zhText = fullText.split('(')[0].trim();
+                            // 特殊處理分隔符號 (移除「/」後面的備註)
+                            if (zhText.includes('/')) {
+                                zhText = zhText.split('/')[0].trim();
+                            }
+                        }
+                    }
+                    
+                    if (customEl && customEl.value.trim() !== '') {
+                        zhText = zhText ? `${zhText}、${customEl.value}` : customEl.value;
+                    }
+                    return zhText;
+                };
+
+                // ==============================
+                // 1. 組合英文 Prompt
+                // ==============================
+                let parts = [];
+
+                let camera = [
+                    getF('cam-lens'), getF('cam-aperture'), getF('scene-composition'),
+                    getF('cam-shot'), getF('cam-angle'), getF('scene-style-realistic'), getF('scene-style-special')
+                ].filter(s => s && s.trim() !== '');
+                if(camera.length) parts.push(camera.join(", "));
+
+                let charName = p.v('char-name');
+                let gender = p.v('gender') || 'female';
+                let dna = charName ? `Analog photograph of ${charName}` : `Analog photograph`;
+                
+                let traits = [p.v('char-age'), p.v('race'), gender].filter(Boolean).join(" ");
+                if(traits.length > 3) dna += `, a ${traits}`;
+                
+                let profession = getF('char-profession');
+                if(profession) {
+                    dna += `, ${profession}`;
+                }
+                parts.push(dna);
+                
+                // 頭髮特徵智能組合 (解決只選顏色沒有 hair 的問題)
+                let hairColorEn = getF('hair-color');
+                let hairStyleEn = getF('hair-style');
+                let hairStrEn = [hairColorEn, hairStyleEn].filter(Boolean).join(" ");
+                if (hairColorEn && !hairStyleEn && !hairColorEn.toLowerCase().includes('hair')) {
+                    hairStrEn += ' hair';
+                }
+
+                // 眼睛特徵智能判斷 (如果是選到瞳孔形狀，就不加 eyes)
+                let eyeVal = getF('eye-color');
+                let eyeStr = '';
+                if (eyeVal) {
+                    if (eyeVal.toLowerCase().includes('pupil') || eyeVal.toLowerCase().includes('iris') || eyeVal.toLowerCase().includes('void')) {
+                        eyeStr = eyeVal; 
+                    } else {
+                        eyeStr = eyeVal + ' eyes'; 
+                    }
+                }
+                let eyeParts = [
+                    eyeStr,
+                    getF('eye-shape')
+                ].filter(Boolean).join(", ");
+                
+                // 五官細節組合
+                let faceDetails = [
+                    getF('face-forehead'), getF('face-cheek'), getF('face-chin'), getF('face-ear'), 
+                    getF('face-nose-shape'), getF('face-nose-wing'), getF('face-nose-tip'), getF('face-mouth')
+                ].filter(Boolean).join(", ");
+
+                let features = [
+                    hairStrEn,
+                    eyeParts,
+                    faceDetails,
+                    getF('face-shape'),
+                    getF('skin-type'),
+                    getF('body-height'),
+                    getF('body-type'),
+                    getF('body-tattoo')
+                ].filter(s => s && s.length > 1);
+                
+                let makeup = [getF('makeup-base'), getF('makeup-eyebrow'), getF('makeup-detail-1')].filter(Boolean);
+                if(makeup.length) features.push(makeup.join(", "));
+
+                if(getF('body-waist')) features.push(getF('body-waist'));
+                if(getF('body-hip')) features.push(getF('body-hip'));
+                if(AppState.mode !== 'clean' && getF('body-bust')) features.push(getF('body-bust'));
+
+                if(features.length) parts.push(features.join(", "));
+
+                let actionStr = [getF('action-pose'), getF('action-activity')].filter(Boolean).join(" while ");
+                let expressionStr = getF('action-expression');
+                if (actionStr || expressionStr) {
+                    parts.push([actionStr ? `She is ${actionStr}` : '', expressionStr].filter(Boolean).join(", "));
+                }
+
+                let topItem = [p.v('top-color'), p.v('top-mat'), p.v('top-pat'), p.v('outfit-top')].filter(Boolean).join(" ");
+                let bottomItem = [p.v('bottom-color'), p.v('bottom-mat'), p.v('bottom-pat'), p.v('outfit-bottom')].filter(Boolean).join(" ");
+                
+                let outfits = [
+                    getF('outfit-theme'), 
+                    getF('outfit-head'), 
+                    p.v('outfit-acc') ? [getF('outfit-acc-detail'), getF('outfit-acc')].filter(Boolean).join(" ") : getF('outfit-acc'),
+                    getF('outfit-hands'),
+                    getF('outfit-outer'), 
+                    [topItem, document.getElementById('outfit-top-custom') ? p.v('outfit-top-custom') : ''].filter(Boolean).join(", "),
+                    [bottomItem, document.getElementById('outfit-bottom-custom') ? p.v('outfit-bottom-custom') : ''].filter(Boolean).join(", "),
+                    getF('outfit-bag'),
+                    getF('outfit-sock'),
+                    getF('outfit-shoe')
+                ].filter(s => s && s.trim() !== '');
+                
+                if(outfits.length) {
+                    let outfitStr = `wearing ${outfits.join(", ")}`;
+                    if (getF('outfit-fit-physics')) outfitStr += `, ${getF('outfit-fit-physics')}`;
+                    parts.push(outfitStr);
+                } else if (getF('outfit-fit-physics')) {
+                    parts.push(getF('outfit-fit-physics'));
+                }
+
+                let scenePropsStr = getF('scene-props');
+                let scenePropsDetailStr = getF('scene-props-detail');
+                let combinedProps = [scenePropsDetailStr, scenePropsStr].filter(Boolean).join(" ");
+                
+                let env = [
+                    getF('scene-time'),
+                    getF('scene-weather'),
+                    getF('scene-loc'),
+                    getF('scene-lighting')
+                ].filter(s => s && s.trim() !== '');
+                
+                if(env.length) parts.push(env.join(", "));
+                if(combinedProps) parts.push(combinedProps); // 獨立加入物件與裝飾
+
+                let texEffects = [
+                    p.c('effect-damp-hair') ? document.getElementById('effect-damp-hair').value : '',
+                    p.c('effect-steamy') ? document.getElementById('effect-steamy').value : '',
+                    p.c('effect-showered') ? document.getElementById('effect-showered').value : '',
+                    p.c('effect-oily') ? document.getElementById('effect-oily').value : '',
+                    p.c('effect-rain') ? document.getElementById('effect-rain').value : '',
+                    p.c('effect-sweaty') ? document.getElementById('effect-sweaty').value : '',
+                    p.c('effect-underwater') ? document.getElementById('effect-underwater').value : '',
+                    p.c('effect-glitter') ? document.getElementById('effect-glitter').value : '',
+                    p.c('effect-frost') ? document.getElementById('effect-frost').value : '',
+                    p.c('effect-goosebumps') ? document.getElementById('effect-goosebumps').value : '',
+                    p.c('effect-flush') ? document.getElementById('effect-flush').value : '',
+                    p.c('effect-glow') ? document.getElementById('effect-glow').value : ''
+                ].filter(Boolean);
+                if(texEffects.length) parts.push(texEffects.join(", "));
+
+                if (AppState.mode === 'sexy') {
+                    parts.push("emphasizing her feminine silhouette");
+                } else if (AppState.mode === 'nsfw') {
+                    parts.push("deep V-neck sexy sundress, NSFW");
+                }
+
+                let finalString = parts.filter(Boolean).join(". ").replace(/\s+/g, ' ').trim();
+                
+                // 加入圖片尺寸 (英文)
+                const arSelectEn = document.getElementById('aspect-ratio');
+                if (arSelectEn && arSelectEn.options && arSelectEn.selectedIndex > 0) {
+                    const opt = arSelectEn.options[arSelectEn.selectedIndex];
+                    if (opt && opt.value) {
+                        finalString += ` ${opt.value}`;
+                    }
+                }
+                
+                document.getElementById('output-text').value = finalString;
+
+                // ==============================
+                // 2. 組合中文 Prompt
+                // ==============================
+                let partsZh = [];
+                
+                let cameraZh = [
+                    getZhF('cam-lens'), getZhF('cam-aperture'), getZhF('scene-composition'),
+                    getZhF('cam-shot'), getZhF('cam-angle'), getZhF('scene-style-realistic'), getZhF('scene-style-special')
+                ].filter(s => s && s.trim() !== '');
+                if(cameraZh.length) partsZh.push(`鏡頭與風格：${cameraZh.join("、")}`);
+
+                let genderZh = '';
+                const genderSelect = document.getElementById('gender');
+                if (genderSelect && genderSelect.options && genderSelect.selectedIndex >= 0) {
+                    const opt = genderSelect.options[genderSelect.selectedIndex];
+                    if (opt) {
+                        genderZh = opt.text.split('(')[0].trim();
+                    }
+                }
+
+                let dnaZh = charName ? `${charName}的照片` : `人物照片`;
+                let traitsZh = [getZhF('char-age'), getZhF('race'), genderZh, getZhF('char-profession')].filter(Boolean).join("");
+                if(traitsZh) dnaZh += `，一位${traitsZh}`;
+                partsZh.push(dnaZh);
+                
+                // 頭髮特徵中文智能組合 (解決只選顏色沒有頭髮字眼的問題)
+                let hairColorZh = getZhF('hair-color');
+                let hairStyleZh = getZhF('hair-style');
+                let hairStrZh = [hairColorZh, hairStyleZh].filter(Boolean).join("");
+                if (hairColorZh && !hairStyleZh && !hairColorZh.includes('髮')) {
+                    hairStrZh += '頭髮';
+                }
+
+                // 眼睛特徵中文智能組合
+                let eyeValZh = getZhF('eye-color');
+                let eyeStrZh = '';
+                if (eyeValZh) {
+                    // 如果選到的是瞳孔形狀，就不加「的眼睛」
+                    if (eyeValZh.includes('瞳') || eyeValZh.includes('星')) {
+                        eyeStrZh = eyeValZh; 
+                    } else {
+                        eyeStrZh = eyeValZh + '的眼睛'; 
+                    }
+                }
+                let eyePartsZh = [
+                    eyeStrZh, 
+                    getZhF('eye-shape')
+                ].filter(Boolean).join("、");
+                
+                // 中文五官細節組合
+                let faceDetailsZh = [
+                    getZhF('face-forehead'), getZhF('face-cheek'), getZhF('face-chin'), getZhF('face-ear'), 
+                    getZhF('face-nose-shape'), getZhF('face-nose-wing'), getZhF('face-nose-tip'), getZhF('face-mouth')
+                ].filter(Boolean).join("、");
+
+                let featuresZh = [
+                    hairStrZh,
+                    eyePartsZh,
+                    faceDetailsZh,
+                    getZhF('face-shape'),
+                    getZhF('skin-type'),
+                    getZhF('body-height'),
+                    getZhF('body-type'),
+                    getZhF('body-tattoo')
+                ].filter(s => s && s.length > 1);
+                
+                let makeupZh = [getZhF('makeup-base'), getZhF('makeup-eyebrow'), getZhF('makeup-detail-1')].filter(Boolean);
+                if(makeupZh.length) featuresZh.push(`妝容：${makeupZh.join("、")}`);
+
+                if(getZhF('body-waist')) featuresZh.push(getZhF('body-waist'));
+                if(getZhF('body-hip')) featuresZh.push(getZhF('body-hip'));
+                if(AppState.mode !== 'clean' && getZhF('body-bust')) featuresZh.push(getZhF('body-bust'));
+
+                if(featuresZh.length) partsZh.push(`外貌特徵：${featuresZh.join("，")}`);
+
+                let actionStrZh = [getZhF('action-pose'), getZhF('action-activity')].filter(Boolean).join("同時");
+                let expressionStrZh = getZhF('action-expression');
+                if (actionStrZh || expressionStrZh) {
+                    let actArr = [];
+                    if(actionStrZh) actArr.push(`正在${actionStrZh}`);
+                    if(expressionStrZh) actArr.push(`表情${expressionStrZh}`);
+                    partsZh.push(actArr.join("，"));
+                }
+
+                let topItemZh = [getZhF('top-color'), getZhF('top-mat'), getZhF('top-pat'), getZhF('outfit-top')].filter(Boolean).join("");
+                let bottomItemZh = [getZhF('bottom-color'), getZhF('bottom-mat'), getZhF('bottom-pat'), getZhF('outfit-bottom')].filter(Boolean).join("");
+                
+                let outfitsZh = [
+                    getZhF('outfit-theme'), 
+                    getZhF('outfit-head'), 
+                    getZhF('outfit-acc'),
+                    getZhF('outfit-hands'),
+                    getZhF('outfit-outer'), 
+                    topItemZh,
+                    bottomItemZh,
+                    getZhF('outfit-bag'),
+                    getZhF('outfit-sock'),
+                    getZhF('outfit-shoe')
+                ].filter(s => s && s.trim() !== '');
+                
+                if(outfitsZh.length) {
+                    let outfitStrZh = `穿著：${outfitsZh.join("、")}`;
+                    if (getZhF('outfit-fit-physics')) outfitStrZh += ` (${getZhF('outfit-fit-physics')})`;
+                    partsZh.push(outfitStrZh);
+                } else if (getZhF('outfit-fit-physics')) {
+                    partsZh.push(`服裝質感：${getZhF('outfit-fit-physics')}`);
+                }
+
+                let scenePropsStrZh = getZhF('scene-props');
+                let scenePropsDetailStrZh = getZhF('scene-props-detail');
+                let combinedPropsZh = [scenePropsDetailStrZh, scenePropsStrZh].filter(Boolean).join("的");
+                
+                let envZh = [
+                    getZhF('scene-loc') ? `在${getZhF('scene-loc')}` : '',
+                    getZhF('scene-time'),
+                    getZhF('scene-weather'),
+                    getZhF('scene-lighting')
+                ].filter(s => s && s.trim() !== '');
+                
+                // 將環境氛圍與裝飾物件分開
+                if(envZh.length) partsZh.push(`場景氛圍：${envZh.join("，")}`);
+                if(combinedPropsZh) partsZh.push(`物件與裝飾：${combinedPropsZh}`);
+
+                let texEffectsZh = [
+                    p.c('effect-damp-hair') ? document.getElementById('effect-damp-hair').nextElementSibling.innerText : '',
+                    p.c('effect-steamy') ? document.getElementById('effect-steamy').nextElementSibling.innerText : '',
+                    p.c('effect-showered') ? document.getElementById('effect-showered').nextElementSibling.innerText : '',
+                    p.c('effect-oily') ? document.getElementById('effect-oily').nextElementSibling.innerText : '',
+                    p.c('effect-rain') ? document.getElementById('effect-rain').nextElementSibling.innerText : '',
+                    p.c('effect-sweaty') ? document.getElementById('effect-sweaty').nextElementSibling.innerText : '',
+                    p.c('effect-underwater') ? document.getElementById('effect-underwater').nextElementSibling.innerText : '',
+                    p.c('effect-glitter') ? document.getElementById('effect-glitter').nextElementSibling.innerText : '',
+                    p.c('effect-frost') ? document.getElementById('effect-frost').nextElementSibling.innerText : '',
+                    p.c('effect-goosebumps') ? document.getElementById('effect-goosebumps').nextElementSibling.innerText : '',
+                    p.c('effect-flush') ? document.getElementById('effect-flush').nextElementSibling.innerText : '',
+                    p.c('effect-glow') ? document.getElementById('effect-glow').nextElementSibling.innerText : ''
+                ].filter(Boolean);
+                
+                // 去除前面的 Emoji
+                texEffectsZh = texEffectsZh.map(t => t.replace(/^[^\w\u4e00-\u9fa5]+/, '').trim());
+                if(texEffectsZh.length) partsZh.push(`畫面質感疊加：${texEffectsZh.join("、")}`);
+
+                let finalStringZh = partsZh.filter(Boolean).join("。\n").trim();
+                
+                // 加入圖片尺寸 (中文)
+                const arSelectZh = document.getElementById('aspect-ratio');
+                if (arSelectZh && arSelectZh.options && arSelectZh.selectedIndex > 0) {
+                    const opt = arSelectZh.options[arSelectZh.selectedIndex];
+                    if (opt) {
+                        const arText = opt.text.split('(')[0].trim();
+                        finalStringZh += `\n\n圖片比例：${arText}`;
+                    }
+                }
+
+                document.getElementById('output-text-zh').value = finalStringZh;
+
+                UI.updateVisuals();
+            },
+            
+            randomizeAll: () => {
+                document.querySelectorAll('select').forEach(s => {
+                    if (s.options.length > 1 && s.id !== 'gender') {
+                        s.selectedIndex = Math.floor(Math.random() * s.options.length);
+                    }
+                });
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = Math.random() > 0.7);
+                PromptEngine.build();
+                UI.toast("已隨機生成參數", "fa-dice");
+            },
+
+            resetAll: () => {
+                document.querySelectorAll('.input-field').forEach(el => {
+                    if (el.id !== 'char-name' && el.id !== 'bookmark-name' && el.id !== 'bookmark-select' && el.id !== 'gender') {
+                        el.value = "";
+                    }
+                });
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                PromptEngine.build();
+                UI.toast("已清除所有選擇", "fa-eraser");
+            },
+
+            copyPrompt: (lang = 'en', withNegative = false) => {
+                const targetId = lang === 'en' ? 'output-text' : 'output-text-zh';
+                const positiveText = document.getElementById(targetId).value;
+                if(!positiveText) return;
+                
+                let copyText = positiveText;
+                if (lang === 'en' && withNegative) {
+                    const negativeText = "\nNegative Prompt: worst quality, low quality, blurry, low saturation, worst quality, blurry, watermark, text, error, acnes, age spot, 6 more fingers on one hand, deformity, bad legs, error legs, bad feet, malformed limbs, extra limbs, ugly, poorly drawn hands, poorly drawn feet, poorly drawn face, mutilated, extra fingers, mutated hands, bad hands, missing fingers, extra digit, fewer digits,bad anatomy, cloned face, disfigured, fused fingers,";
+                    copyText += negativeText;
+                }
+                
+                const textArea = document.createElement("textarea");
+                textArea.value = copyText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    if (lang === 'zh') {
+                        UI.toast("中文提示詞已複製！");
+                    } else {
+                        UI.toast(withNegative ? "已複製提示詞與負面詞！" : "提示詞已複製！");
+                    }
+                    HistoryManager.add(positiveText); 
+                } catch (err) {
+                    UI.toast("複製失敗，請手動選取", "fa-times-circle");
+                }
+                document.body.removeChild(textArea);
+            }
+        };
+
+        const HistoryManager = {
+            add: (prompt) => {
+                let history = JSON.parse(localStorage.getItem('wm_history') || '[]');
+                history = [prompt, ...history.filter(p => p !== prompt)].slice(0, 10);
+                localStorage.setItem('wm_history', JSON.stringify(history));
+                HistoryManager.render();
+            },
+            render: () => {
+                const list = document.getElementById('history-list');
+                const history = JSON.parse(localStorage.getItem('wm_history') || '[]');
+                if (!history.length) {
+                    list.innerHTML = '<p class="text-center text-muted text-xs py-4">無紀錄</p>';
+                    return;
+                }
+                list.innerHTML = history.map((p, i) => `
+                    <div class="bg-surface p-3 rounded-[8px] cursor-pointer group relative border border-line hover:border-theme transition-all text-[11px] text-muted line-clamp-2 shadow-sm" onclick="HistoryManager.apply(${i})">
+                        ${p}
+                    </div>
+                `).join('');
+            },
+            apply: (idx) => {
+                const history = JSON.parse(localStorage.getItem('wm_history') || '[]');
+                if(history[idx]) {
+                    document.getElementById('output-text').value = history[idx];
+                    UI.toast("已讀取歷史紀錄");
+                }
+            },
+            clear: () => {
+                UI.confirm("清除生成紀錄", "確定要刪除所有生成紀錄嗎？此動作無法復原。", () => {
+                    localStorage.removeItem('wm_history');
+                    HistoryManager.render();
+                    UI.toast("已清除歷史紀錄");
+                });
+            }
+        };
+
+        const BookmarkManager = {
+            getConfig: () => {
+                let config = { mode: AppState.mode, inputs: {}, checkboxes: {} };
+                document.querySelectorAll('select, input[type="text"]').forEach(el => { if(el.id && el.id !== 'bookmark-name') config.inputs[el.id] = el.value; });
+                document.querySelectorAll('input[type="checkbox"]').forEach(el => { if(el.id) config.checkboxes[el.id] = el.checked; });
+                return config;
+            },
+            applyConfig: (config) => {
+                if(!config) return;
+                App.setMode(config.mode || 'clean');
+                Object.entries(config.inputs || {}).forEach(([id, val]) => { const el = document.getElementById(id); if(el) el.value = val; });
+                Object.entries(config.checkboxes || {}).forEach(([id, val]) => { const el = document.getElementById(id); if(el) el.checked = val; });
+                PromptEngine.build();
+            },
+            save: () => {
+                let nameInput = document.getElementById('bookmark-name');
+                let name = nameInput.value.trim();
+                if (!name) {
+                    name = document.getElementById('char-name').value.trim() || '未命名書籤';
+                    nameInput.value = name;
+                }
+                let favs = JSON.parse(localStorage.getItem('wm_bookmarks') || '[]');
+                favs.unshift({ label: name, config: BookmarkManager.getConfig(), date: new Date().toLocaleDateString() });
+                localStorage.setItem('wm_bookmarks', JSON.stringify(favs));
+                BookmarkManager.render();
+                UI.toast(`已儲存書籤：${name}`);
+                nameInput.value = '';
+            },
+            render: () => {
+                const select = document.getElementById('bookmark-select');
+                const favs = JSON.parse(localStorage.getItem('wm_bookmarks') || '[]');
+                select.innerHTML = '<option value="">-- 選擇書籤 --</option>';
+                favs.forEach((f, i) => {
+                    let opt = document.createElement('option');
+                    opt.value = i;
+                    opt.innerText = `${f.label} (${f.date})`;
+                    select.appendChild(opt);
+                });
+            },
+            load: () => {
+                const idx = document.getElementById('bookmark-select').value;
+                if(idx === "") return UI.toast("請先選擇書籤", "fa-exclamation-circle");
+                const favs = JSON.parse(localStorage.getItem('wm_bookmarks') || '[]');
+                if(favs[idx]) {
+                    BookmarkManager.applyConfig(favs[idx].config);
+                    UI.toast(`已載入：${favs[idx].label}`);
+                }
+            },
+            deleteSelected: () => {
+                const idx = document.getElementById('bookmark-select').value;
+                if(idx === "") return UI.toast("請先選擇要刪除的書籤", "fa-exclamation-circle");
+                
+                UI.confirm("刪除書籤", "確定要刪除選定的書籤嗎？", () => {
+                    let favs = JSON.parse(localStorage.getItem('wm_bookmarks') || '[]');
+                    favs.splice(idx, 1);
+                    localStorage.setItem('wm_bookmarks', JSON.stringify(favs));
+                    BookmarkManager.render();
+                    UI.toast("書籤已刪除");
+                });
+            },
+            exportJSON: () => {
+                const favs = localStorage.getItem('wm_bookmarks') || '[]';
+                const blob = new Blob([favs], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Bookmarks_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                UI.toast("書籤已匯出");
+            },
+            importJSON: (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        if(Array.isArray(imported)) {
+                            localStorage.setItem('wm_bookmarks', JSON.stringify(imported));
+                            BookmarkManager.render();
+                            UI.toast("書籤匯入成功！");
+                        } else { throw new Error("Format Invalid"); }
+                    } catch (err) {
+                        UI.toast("匯入失敗：檔案格式不正確", "fa-times-circle");
+                    }
+                    e.target.value = '';
+                };
+                reader.readAsText(file);
+            }
+        };
+
+        const App = {
+            setMode: (mode) => {
+                AppState.mode = mode;
+                
+                document.body.classList.remove('mode-clean', 'mode-sexy', 'mode-nsfw');
+                document.body.classList.add(`mode-${mode}`);
+
+                ['clean', 'sexy', 'nsfw'].forEach(m => document.getElementById(`btn-${m}`).classList.toggle('mode-active', m === mode));
+                
+                const statusMap = { clean: ['✅ 安全模式', 'var(--theme-color)'], sexy: ['💜 性感模式', 'var(--theme-color)'], nsfw: ['🔞 越界模式', 'var(--theme-color)'] };
+                const statusEl = document.getElementById('mode-status');
+                statusEl.innerText = statusMap[mode][0];
+                statusEl.style.color = statusMap[mode][1];
+
+                const bustContainer = document.getElementById('bust-container');
+                const bustWarn = document.getElementById('bust-warn');
+                if(mode === 'clean') {
+                    bustWarn.classList.remove('hidden');
+                    Array.from(bustContainer.querySelectorAll('select, input')).forEach(s => s.classList.add('opacity-30', 'pointer-events-none'));
+                } else {
+                    bustWarn.classList.add('hidden');
+                    Array.from(bustContainer.querySelectorAll('select, input')).forEach(s => s.classList.remove('opacity-30', 'pointer-events-none'));
+                }
+                
+                document.querySelectorAll('.texture-cb').forEach(el => {
+                    const tags = el.getAttribute('data-tags');
+                    if (tags && !tags.includes(mode)) {
+                        el.classList.add('hidden');
+                        const cb = el.querySelector('input[type="checkbox"]');
+                        if(cb) cb.checked = false;
+                    } else {
+                        el.classList.remove('hidden');
+                        el.style.display = 'flex'; 
+                    }
+                });
+
+                Database.populateAll();
+                PromptEngine.build();
+            },
+            toggleTheme: () => {
+                const body = document.body;
+                const isDark = body.classList.toggle('dark-mode');
+                const btn = document.getElementById('btn-theme-toggle');
+                
+                if (isDark) {
+                    btn.innerHTML = '<i class="fas fa-sun text-yellow-400"></i> 亮色';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-moon text-yellow-400"></i> 暗色';
+                }
+            },
+            showHelp: () => {
+                const content = `
+                    <div class="space-y-4 pr-2">
+                        <div class="mb-4">
+                            <h4 class="font-bold text-main text-lg mb-2 border-b border-line pb-1">💡 操作方式與說明</h4>
+                            <ol class="list-decimal pl-5 space-y-2 text-muted">
+                                <li><strong>選擇模式：</strong>依據使用的 AI 平台審查嚴格程度，選擇「清純版」、「性感版」或「NSFW版」。</li>
+                                <li><strong>挑選特徵：</strong>切換左側分頁，從下拉選單挑選或自行輸入喜好的風格與細節。</li>
+                                <li><strong>個人書籤：</strong>遇到喜歡的設定組合，可以輸入名稱並點擊「儲存」，日後可快速載入。也可透過「匯出/匯入 JSON」在不同裝置間備份與轉移您的專屬設定。</li>
+                                <li><strong>複製咒語：</strong>右側會即時生成英文提示詞，點擊「複製提示詞」即可。</li>
+                                <li><strong>含負面詞複製：</strong>附加上固定防劣化的負面提示詞。這主要用來避免 AI 生成變形的手腳或劣化畫質，通常在支援自由輸入提示詞的平台（如 Civitai、Tensor.art 等）才會需要使用。</li>
+                            </ol>
+                        </div>
+
+                        <div class="mb-2">
+                            <h4 class="font-bold text-main text-lg mb-2 border-b border-line pb-1">🔗 AI 平台推薦與分類</h4>
+                            <div class="space-y-3">
+                                <!-- 嚴格平台 -->
+                                <div class="p-3 rounded-[8px] border border-blue-500/50 bg-blue-500/10 text-main">
+                                    <h5 class="font-bold text-blue-500 text-base mb-1 flex items-center"><i class="fas fa-leaf mr-2"></i>嚴格平台 (請用：清純版)</h5>
+                                    <div class="flex flex-wrap gap-3 text-sm">
+                                        <a href="https://gemini.google.com/" target="_blank" class="text-blue-400 hover:text-blue-300 underline font-medium">Gemini</a>
+                                        <a href="https://dreamina.capcut.com/ai-tool/home/" target="_blank" class="text-blue-400 hover:text-blue-300 underline font-medium">即夢</a>
+                                        <a href="https://www.doubao.com/chat/create-image" target="_blank" class="text-blue-400 hover:text-blue-300 underline font-medium">豆包</a>
+                                        <a href="https://app.pixverse.ai/onboard" target="_blank" class="text-blue-400 hover:text-blue-300 underline font-medium">吐司 (Pixverse)</a>
+                                        <a href="https://copilot.microsoft.com/" target="_blank" class="text-blue-400 hover:text-blue-300 underline font-medium">Copilot</a>
+                                        <a href="https://www.meta.ai/" target="_blank" class="text-blue-400 hover:text-blue-300 underline font-medium">Meta AI</a>
+                                    </div>
+                                </div>
+                                <!-- 寬鬆平台 (性感版) -->
+                                <div class="p-3 rounded-[8px] border border-pink-500/50 bg-pink-500/10 text-main">
+                                    <h5 class="font-bold text-pink-500 text-base mb-1 flex items-center"><i class="fas fa-heart mr-2"></i>寬鬆平台 (可用：性感版)</h5>
+                                    <div class="flex flex-wrap gap-3 text-sm">
+                                        <a href="https://tengr.ai/en" target="_blank" class="text-pink-400 hover:text-pink-300 underline font-medium">tengr.ai</a>
+                                        <a href="https://x.ai/" target="_blank" class="text-pink-400 hover:text-pink-300 underline font-medium">Grok (xAI)</a>
+                                        <a href="https://leonardo.ai/" target="_blank" class="text-pink-400 hover:text-pink-300 underline font-medium">Leonardo.ai</a>
+                                        <a href="https://www.runninghub.ai/quick-create/VersatileVideoPro" target="_blank" class="text-pink-400 hover:text-pink-300 underline font-medium">Runninghub.ai</a>
+                                        <a href="https://poe.com/" target="_blank" class="text-pink-400 hover:text-pink-300 underline font-medium">Poe</a>
+                                    </div>
+                                </div>
+                                <!-- NSFW 平台 -->
+                                <div class="p-3 rounded-[8px] border border-orange-500/50 bg-orange-500/10 text-main">
+                                    <h5 class="font-bold text-orange-500 text-base mb-1 flex items-center"><i class="fas fa-fire mr-2"></i>無限制平台 (可用：NSFW版)</h5>
+                                    <div class="flex flex-wrap gap-3 text-sm">
+                                        <a href="https://civitai.com/" target="_blank" class="text-orange-400 hover:text-orange-300 underline font-medium">Civitai</a>
+                                        <a href="https://tensor.art/zh-TW" target="_blank" class="text-orange-400 hover:text-orange-300 underline font-medium">Tensor.art</a>
+                                        <a href="https://www.seaart.ai/zhTW" target="_blank" class="text-orange-400 hover:text-orange-300 underline font-medium">SeaArt</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                UI.showModal('<i class="fas fa-book-open text-theme mr-2"></i>平台審查說明與教學', content);
+            },
+            bindEvents: () => {
+                document.querySelectorAll('select, input').forEach(el => {
+                    if (el.id === 'import-json' || el.id === 'bookmark-name') return;
+                    el.addEventListener('change', PromptEngine.build);
+                    if (el.type !== 'checkbox') el.addEventListener('input', PromptEngine.build);
+                });
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                            const btn = document.getElementById(`btn-${entry.target.id}`);
+                            if(btn) btn.classList.replace('tab-inactive', 'tab-active');
+                        }
+                    });
+                }, { rootMargin: "-20% 0px -80% 0px" });
+                
+                document.querySelectorAll('section').forEach(sec => observer.observe(sec));
+            },
+            init: async () => {
+                await Database.init();
+                HistoryManager.render();
+                BookmarkManager.render();
+                App.bindEvents();
+                App.setMode('clean');
+
+                const isDark = document.body.classList.contains('dark-mode');
+                const btn = document.getElementById('btn-theme-toggle');
+                if (isDark) {
+                    btn.innerHTML = '<i class="fas fa-sun text-yellow-400"></i> 亮色';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-moon text-yellow-400"></i> 暗色';
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', App.init);
+    </script>
+</body>
+</html>

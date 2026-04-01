@@ -1,233 +1,54 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="zh-Hant">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>人物提示詞產生器 - Ink & Ether Studio</title>
-    <!-- Material Symbols -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-    
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">
-          tailwind.config = {
-            darkMode: "class",
-            theme: {
-              extend: {
-                colors: {
-                  "surface-container-high": "#eae8e0",
-                  "on-secondary-fixed-variant": "#782f2b",
-                  "surface-dim": "#dcdad2",
-                  "inverse-surface": "#30312c",
-                  "tertiary-fixed-dim": "#becd94",
-                  "secondary-fixed": "#ffdad6",
-                  "surface-tint": "#4a5d8b",
-                  "surface-container": "#f0eee6",
-                  "primary": "#334673",
-                  "primary-fixed-dim": "#b2c6fa",
-                  "on-primary": "#ffffff",
-                  "surface-bright": "#fbf9f1",
-                  "surface-container-low": "#f5f4ec",
-                  "secondary": "#964640",
-                  "secondary-container": "#fc988f",
-                  "inverse-on-surface": "#f3f1e9",
-                  "outline-variant": "#c5c6d0",
-                  "on-tertiary-fixed": "#161f00",
-                  "on-error": "#ffffff",
-                  "inverse-primary": "#b2c6fa",
-                  "surface-container-highest": "#e4e3db",
-                  "on-primary-fixed": "#011944",
-                  "on-tertiary": "#ffffff",
-                  "on-secondary": "#ffffff",
-                  "on-surface": "#1b1c17",
-                  "on-primary-container": "#ccd9ff",
-                  "on-surface-variant": "#44464f",
-                  "surface-variant": "#e4e3db",
-                  "primary-fixed": "#d9e2ff",
-                  "surface-container-lowest": "#ffffff",
-                  "tertiary": "#404c20",
-                  "error": "#ba1a1a",
-                  "on-secondary-fixed": "#3e0405",
-                  "primary-container": "#4b5e8c",
-                  "outline": "#757780",
-                  "tertiary-container": "#576435",
-                  "on-tertiary-container": "#d1e0a5",
-                  "on-secondary-container": "#762e29",
-                  "tertiary-fixed": "#dae9ae",
-                  "surface": "#fbf9f1",
-                  "on-error-container": "#93000a",
-                  "secondary-fixed-dim": "#ffb3ac",
-                  "on-tertiary-fixed-variant": "#3f4b1f",
-                  "on-background": "#1b1c17",
-                  "error-container": "#ffdad6",
-                  "on-primary-fixed-variant": "#324672",
-                  "background": "#fbf9f1"
-                },
-                fontFamily: {
-                  "headline": ["Noto Serif"],
-                  "body": ["Manrope"],
-                  "label": ["Manrope"]
-                },
-                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-              },
-            },
-          }
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物提示詞產生器 - 版本目錄</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .washi-texture {
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-        }
-        .ink-bleed {
-            box-shadow: 0 0 15px rgba(51, 70, 115, 0.15);
-        }
-        /* Custom scrollbar matching new theme */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #c5c6d0; border-radius: 4px; }
-        
-        .tab-content { display: none; opacity: 0; transition: opacity 0.3s; }
-        .tab-content.active { display: block; opacity: 1; }
-        
-        /* Dropdown custom dark mode resets if needed, but Tailwind handles mostly */
-        
-        #toast-container {
-            position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
-            display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none;
-        }
-        .toast {
-            background: #ffffff; color: #1b1c17; padding: 1rem 1.5rem;
-            border-radius: 0.5rem; border-left: 4px solid #e07a5f;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            font-weight: 600; font-family: 'Manrope', sans-serif;
-            transform: translateX(120%); transition: transform 0.4s ease;
-        }
-        .toast.show { transform: translateX(0); }
-        .dark .toast { background: #30312c; color: #ffffff; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hero { text-align: center; margin-bottom: 3rem; }
+        .hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .hero h1 span { color: #3b82f6; }
+        .hero p { color: #94a3b8; font-size: 1.1rem; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+        .cards { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; padding: 0 1rem; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; width: 300px; text-decoration: none; color: inherit; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 1rem; position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; }
+        .card-v1::before { background: #3b82f6; }
+        .card-v2::before { background: #e07a5f; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); border-color: #475569; }
+        .card h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 99px; font-weight: 700; }
+        .badge-v1 { background: rgba(59,130,246,0.2); color: #93c5fd; }
+        .badge-v2 { background: rgba(224,122,95,0.2); color: #fecaca; }
+        .card p { margin: 0; color: #94a3b8; font-size: 0.875rem; line-height: 1.6; flex: 1; }
+        .card-btn { display: inline-block; padding: 0.75rem; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 1rem; transition: background 0.3s; }
+        .btn-v1 { background: #3b82f6; color: white; }
+        .btn-v2 { background: #e07a5f; color: white; }
+        .card:hover .btn-v1 { background: #2563eb; }
+        .card:hover .btn-v2 { background: #c2614b; }
     </style>
 </head>
-<body class="bg-surface font-body text-on-surface washi-texture min-h-screen dark:bg-stone-950 dark:text-stone-200">
-    
-    <!-- TopNavBar -->
-    <header class="fixed top-0 w-full z-50 bg-[#fbf9f1]/80 dark:bg-stone-900/80 backdrop-blur-md shadow-[0_20px_40px_rgba(51,70,115,0.06)] flex justify-between items-center px-4 md:px-8 h-20 w-full">
-        <div class="flex items-center gap-4">
-            <span class="text-xl md:text-2xl font-bold font-serif text-[#334673] dark:text-blue-200 italic">Komorebi Washi</span>
-        </div>
-        
-        <div class="flex items-center gap-3">
-            <div class="flex bg-surface-container-low dark:bg-stone-800 p-1 rounded-lg border border-outline-variant/30">
-                <button class="mode-btn px-3 py-1.5 text-xs font-bold rounded bg-primary text-white shadow-sm" data-mode="clean" onclick="setMode('clean')">清純</button>
-                <button class="mode-btn px-3 py-1.5 text-xs font-bold rounded text-on-surface-variant hover:text-primary dark:text-stone-400" data-mode="sexy" onclick="setMode('sexy')">性感</button>
-                <button class="mode-btn px-3 py-1.5 text-xs font-bold rounded text-on-surface-variant hover:text-primary dark:text-stone-400" data-mode="nsfw" onclick="setMode('nsfw')">NSFW</button>
-            </div>
-            <button onclick="toggleDark()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-primary dark:text-stone-300">
-                <span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
-            </button>
-        </div>
-    </header>
+<body>
 
-    <div class="flex pt-20 h-screen overflow-hidden">
-        
-        <!-- SideNavBar (Tabs) -->
-        <aside class="w-64 hidden lg:flex flex-col bg-[#fbf9f1] dark:bg-stone-900 gap-y-6 pt-8 px-4 h-full border-r border-outline-variant/10 overflow-y-auto">
-            <div class="flex items-center gap-3 mb-4 px-4">
-                <div class="w-10 h-10 bg-secondary-container rounded-sm flex items-center justify-center">
-                    <span class="text-white font-serif font-bold">印</span>
-                </div>
-                <div>
-                    <h2 class="text-xl font-serif text-[#334673] dark:text-blue-100">人物提示詞</h2>
-                    <p class="text-xs text-on-surface-variant font-medium">Ink & Ether</p>
-                </div>
-            </div>
-            <nav id="tabs-container-desktop" class="flex flex-col gap-1 pb-24">
-                <!-- Generated by JS -->
-            </nav>
-        </aside>
-
-        <!-- Main Content Canvas -->
-        <main class="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto h-full pb-32 lg:pb-12" id="main-scroll">
-            
-            <header class="mb-8 md:mb-12">
-                <h1 class="font-headline text-3xl md:text-5xl lg:text-6xl text-primary dark:text-blue-100 font-bold mb-2 tracking-tight">Prompt Studio</h1>
-                <p class="font-body text-on-surface-variant dark:text-stone-400 max-w-xl text-sm md:text-base">精美的日式水墨風格，勾勒每個維度的細節。使用右側烘焙坊即時產生您的咒語。</p>
-            </header>
-
-            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                
-                <!-- Left Column: Generated Forms -->
-                <div class="xl:col-span-7 space-y-8 editor-section" id="content-container">
-                    <!-- Form contents will be injected here -->
-                </div>
-
-                <!-- Right Column: Prompt Bakery -->
-                <div class="xl:col-span-5">
-                    <div class="xl:sticky top-4 space-y-6">
-                        
-                        <div class="bg-surface-container-lowest dark:bg-stone-950 rounded-2xl p-6 md:p-8 shadow-[0_20px_40px_rgba(51,70,115,0.06)] border border-outline-variant/5">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="font-headline text-2xl text-primary dark:text-blue-200 italic">Prompt Bakery</h3>
-                                <div class="bg-secondary text-white px-3 py-1 rounded-sm text-[10px] font-bold tracking-widest uppercase cursor-pointer hover:bg-secondary/80" onclick="PromptEngine.randomize()">🎲 隨機參數</div>
-                            </div>
-                            
-                            <!-- En Prompt -->
-                            <div class="space-y-4 relative mb-6">
-                                <div class="flex justify-between">
-                                    <span class="text-xs font-bold text-on-surface-variant uppercase">English</span>
-                                </div>
-                                <div class="bg-surface-container-low dark:bg-stone-900 p-4 rounded-lg border-l-4 border-secondary/50">
-                                    <textarea id="prompt-en" class="w-full bg-transparent border-none focus:ring-0 italic font-serif text-on-surface dark:text-stone-300 leading-relaxed resize-none h-32 md:h-40 p-0 text-sm md:text-base" readonly placeholder="Waiting for inspiration..."></textarea>
-                                </div>
-                                <button onclick="PromptEngine.copy('en')" class="w-full py-3 bg-surface-container-high dark:bg-stone-800 rounded-full font-bold text-primary dark:text-blue-300 hover:scale-[1.02] transition-all text-sm flex items-center justify-center gap-2 border border-outline-variant/20">
-                                    <span class="material-symbols-outlined text-sm" data-icon="content_copy">content_copy</span> Copy English
-                                </button>
-                            </div>
-
-                            <!-- Zh Prompt -->
-                            <div class="space-y-4 relative">
-                                <div class="flex justify-between">
-                                    <span class="text-xs font-bold text-on-surface-variant uppercase">中文參考</span>
-                                </div>
-                                <div class="bg-surface-container-low dark:bg-stone-900 p-4 rounded-lg border-l-4 border-primary/30">
-                                    <textarea id="prompt-zh" class="w-full bg-transparent border-none focus:ring-0 font-body text-on-surface dark:text-stone-300 leading-relaxed resize-none h-24 md:h-32 p-0 text-sm" readonly placeholder="等待產生中..."></textarea>
-                                </div>
-                                <button onclick="PromptEngine.copy('zh')" class="w-full py-3 bg-gradient-to-r from-secondary to-on-secondary-container rounded-full font-bold text-white hover:scale-[1.02] transition-all text-sm shadow-md">
-                                    複製中文參考
-                                </button>
-                            </div>
-
-                            <button onclick="PromptEngine.clear()" class="w-full mt-4 py-2 text-xs font-bold text-error/80 hover:text-error transition-colors flex justify-center items-center gap-1">
-                                <span class="material-symbols-outlined text-xs">delete</span> 重新選擇
-                            </button>
-                        </div>
-                        
-                        <!-- Inspiration Image -->
-                        <div class="bg-primary-container dark:bg-stone-800 rounded-2xl p-1 overflow-hidden group hidden md:block">
-                            <div class="bg-surface-container-low dark:bg-stone-900 rounded-[15px] p-6 flex flex-col items-center text-center">
-                                <div class="w-full h-32 rounded-xl bg-surface mb-4 overflow-hidden relative">
-                                    <img src="screen.png" onerror="this.src='https://lh3.googleusercontent.com/aida-public/AB6AXuBZKvtJWzsHFrvDwLiy8ixBILbo7uRbWxGNTQ3cewa3uVdcb0BCnsFoI9WD-G2ZxjzPWsupyDWtmW7SqXW87lQipOd0EYeybHZ8_Zyqw4icAp5jWi13SH9kgnL0sEGBJNls75BT2IbkSXUfyiqKSKNFKzhnB13QIwroClbYs9TE1se3BkewvstT1L_TET4YXFcUFEYJv4rhkKpaJdPE82W_SZI1Cfl8Boyi034r-6Hdx7k_m49Yku8SLagY6xt7wvaQG4zBRQaRyw'" alt="Inspiration" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700"/>
-                                </div>
-                                <h4 class="font-serif text-lg text-primary dark:text-blue-200">Inspiration: Kyoto Night</h4>
-                                <p class="text-xs text-on-surface-variant italic mt-1">"The moon bleeds into the river like fresh ink on paper."</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </main>
+    <div class="hero">
+        <h1>人物<span>提示詞</span>產生器</h1>
+        <p>歡迎來到專案版本目錄。您可以根據展示與教育訓練的需求，自由切換並查看我們過往所有的介面版本。</p>
     </div>
 
-    <!-- BottomNavBar (Mobile Tabs) -->
-    <nav class="fixed bottom-0 left-0 w-full z-[60] bg-[#fbf9f1]/95 dark:bg-stone-900/95 backdrop-blur-xl flex overflow-x-auto items-center h-16 px-2 lg:hidden rounded-t-xl border-t border-[#334673]/10 shadow-[0_-10px_30px_rgba(51,70,115,0.04)]" id="tabs-container-mobile">
-        <!-- Generated by JS -->
-    </nav>
+    <div class="cards">
+        <a href="v1/index.html" class="card card-v1">
+            <h2>經典深色版 <span class="badge badge-v1">Version 1.0</span></h2>
+            <p>使用純淨 Vanilla HTML/CSS/JS 打造。擁有快速、直覺的雙層面板結構與簡約的 RWD 適配排版。</p>
+            <div class="card-btn btn-v1">進入 V1 體驗</div>
+        </a>
 
-    <div id="toast-container"></div>
-    
-    <script src="data.js"></script>
-    <script src="app.js"></script>
+        <a href="v2/index.html" class="card card-v2">
+            <h2>水墨質感旗艦版 <span class="badge badge-v2">Version 2.0</span></h2>
+            <p>採用全新 Google Stitch (Tailwind css) 設計。融入日式水墨和紙質感與高級視覺特效的旗艦 UI 開發版本。</p>
+            <div class="card-btn btn-v2">進入 V2 體驗</div>
+        </a>
+    </div>
+
 </body>
 </html>
